@@ -53,7 +53,8 @@ def add_hist_to_cbar(im, cbar=None):
 
     # compute normalized histogram
     image_data = im.get_array()
-    N,edges = n.histogram(image_data, bins=32, density=True)
+    N,edges = n.histogram(image_data, bins=32, range=im.get_clim(),
+                          density=True)
     N = N / max(N)
 
     def gen_patch_edge(N, edges):

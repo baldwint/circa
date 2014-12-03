@@ -154,7 +154,7 @@ class GraphPanel(wx.Panel):
             image = npz['image']
 
             self.im = show_image(image, npz['X'], npz['Y'],
-                    ax=self.ax, cax=self.cbar.ax, hist=False)
+                    ax=self.ax, cax=self.cbar.ax, hist=True)
 
             self.canvas.draw()
 
