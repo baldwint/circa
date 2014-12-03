@@ -91,17 +91,42 @@ class GraphPanel(wx.Panel):
 
         fig = Figure()
         self.ax = fig.add_subplot(111)
-        im = self.ax.imshow(n.zeros((2048,2048)))
+        self.im = self.ax.imshow(n.zeros((2048,2048)))
 
-
-        self.cbar = fig.colorbar(im, aspect=8)
+        self.cbar = fig.colorbar(self.im, aspect=8)
 
         #self.hist = fig.add_subplot(121)
-
 
         self.canvas = FigureCanvasWxAgg(self, -1, fig)
         self.canvas.draw()
 
+        def relimcolor(state):
+            im = self.im
+            if not state.mousedown.inaxes == state.mouseup.inaxes:
+                # drag was not contained in one axes
+                return
+            elif state.mousedown.inaxes is None:
+                # drag was totally outside axes
+                return
+            if state.mousedown.inaxes == self.cbar.ax:
+                # if we are in the colorbar
+                scaling = state.mouseup.ydata/state.mousedown.ydata
+                if scaling == 1:
+                    # restore zoom
+                    im.autoscale()
+                elif scaling > 1:
+                    # adjust vmax
+                    vmin, vmax = im.get_clim()
+                    im.set_clim(vmax = vmin + (vmax - vmin)/scaling)
+                elif scaling < 1:
+                    # adjust vmin
+                    vmin, vmax = im.get_clim()
+                    im.set_clim(vmin = vmax - (vmax - vmin)*scaling)
+                self.canvas.draw()
+
+        self.ds = DragState(relimcolor)
+        self.canvas.mpl_connect('button_press_event', self.ds.recv)
+        self.canvas.mpl_connect('button_release_event', self.ds.recv)
 
         self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.buttons = []
@@ -128,10 +153,29 @@ class GraphPanel(wx.Panel):
         with n.load(os.path.join(dirname, filename)) as npz:
             image = npz['image']
 
-            im = show_image(image, npz['X'], npz['Y'],
-                    ax=self.ax, cax=self.cbar.ax, hist=True)
+            self.im = show_image(image, npz['X'], npz['Y'],
+                    ax=self.ax, cax=self.cbar.ax, hist=False)
 
             self.canvas.draw()
+
+class DragState(object):
+    """
+    handles click-drag selection of an area in matplotlib
+
+    """
+
+    def __init__(self, callback):
+        self.recording = False
+        self.callback = callback
+
+    def recv(self, event):
+        if not self.recording and event.name == 'button_press_event':
+            self.mousedown = event
+            self.recording = True
+        elif self.recording and event.name == 'button_release_event':
+            self.mouseup = event
+            self.recording = False
+            self.callback(self)
 
 app = wx.App(False)
 frame = MainWindow(None, 'Hello World')
