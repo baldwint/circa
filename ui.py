@@ -3,7 +3,6 @@ from __future__ import division
 import wx
 import os
 
-
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 import numpy as n
@@ -13,8 +12,7 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
-        self.panel = GraphPanel(self)
-        #self.panel = MainPanel(self)
+        self.panel = ImagePanel(self)
 
         #self.CreateStatusBar()
 
@@ -42,7 +40,6 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def OnExit(self, e):
-        print self.panel.cbar.vmax
         self.Close(True)
 
     def OnOpen(self, e):
@@ -55,35 +52,9 @@ class MainWindow(wx.Frame):
             self.panel.open(self.dirname, self.filename)
         dlg.Destroy()
 
-class MainPanel(wx.Panel):
-
-    def __init__(self, parent):
-
-        wx.Panel.__init__(self, parent)
-
-        self.control = wx.TextCtrl(self, style=wx.TE_MULTILINE)
-
-        self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.buttons = []
-        for i in range(3):
-            self.buttons.append(wx.Button(self, -1, "Button &%d" % i))
-            self.subsizer.Add(self.buttons[i], 1, wx.EXPAND)
-
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.control, 1, wx.EXPAND)
-        self.sizer.Add(self.subsizer, 0, wx.EXPAND)
-
-        self.SetSizer(self.sizer)
-        self.SetAutoLayout(1)
-        self.sizer.Fit(self)
-
-    def open(self, dirname, filename):
-        with open(os.path.join(dirname, filename), 'r') as f:
-            self.control.SetValue(f.read())
-
 from imaging import show_image, add_hist_to_cbar
 
-class GraphPanel(wx.Panel):
+class ImagePanel(wx.Panel):
 
     def __init__(self, parent):
 
@@ -94,8 +65,6 @@ class GraphPanel(wx.Panel):
         self.im = self.ax.imshow(n.zeros((2048,2048)))
 
         self.cbar = fig.colorbar(self.im, aspect=8)
-
-        #self.hist = fig.add_subplot(121)
 
         self.canvas = FigureCanvasWxAgg(self, -1, fig)
         self.canvas.draw()
@@ -128,26 +97,13 @@ class GraphPanel(wx.Panel):
         self.canvas.mpl_connect('button_press_event', self.ds.recv)
         self.canvas.mpl_connect('button_release_event', self.ds.recv)
 
-        self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.buttons = []
-        self.buttons.append(wx.StaticText(self, -1, "VMax"))
-        self.subsizer.Add(self.buttons[-1], 1, wx.EXPAND)
-        self.buttons.append(wx.TextCtrl(self, -1, "Hi"))
-        self.subsizer.Add(self.buttons[-1], 1, wx.EXPAND)
-        for i in range(3):
-            self.buttons.append(wx.Button(self, -1, "Button &%d" % i))
-            self.subsizer.Add(self.buttons[-1], 1, wx.EXPAND)
-
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.box = wx.StaticBox(self, label="Image")
+        self.sizer = wx.StaticBoxSizer(self.box)
         self.sizer.Add(self.canvas, 1, wx.EXPAND)
-        self.sizer.Add(self.subsizer, 0, wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
         self.sizer.Fit(self)
-
-        self.open('/Users/tkb/Dropbox/wanglab/data/2014-10/20 Oct rabi oscillations with stripline/',
-                'image16.npz')
 
     def open(self, dirname, filename):
         with n.load(os.path.join(dirname, filename)) as npz:
@@ -177,7 +133,8 @@ class DragState(object):
             self.recording = False
             self.callback(self)
 
-app = wx.App(False)
-frame = MainWindow(None, 'Hello World')
-frame.Show(True)
-app.MainLoop()
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MainWindow(None, 'Hello World')
+    frame.Show(True)
+    app.MainLoop()

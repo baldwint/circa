@@ -6,7 +6,7 @@ from wx.lib import intctrl, newevent
 class MainWindow(wx.Frame):
 
     def __init__(self, parent, title):
-        wx.Frame.__init__(self, parent, title=title, size=(500,400))
+        wx.Frame.__init__(self, parent, title=title, size=(200, 150))
 
         self.panel = DoubleGalvoPanel(self)
 
@@ -71,7 +71,8 @@ class DoubleGalvoPanel(wx.Panel):
         self.increment.Bind(wx.EVT_SPINCTRL, self.newinc)
 
         # flex grid sizer
-        self.sizer = wx.FlexGridSizer(rows=3, cols=2)
+        self.sizer = wx.FlexGridSizer(rows=3, cols=2,
+                                      vgap=5, hgap=5)
         self.sizer.Add(self.Xlabel, 0, wx.EXPAND)
         self.sizer.Add(self.X, 0, wx.EXPAND)
         self.sizer.Add(self.Ylabel, 0, wx.EXPAND)
@@ -100,7 +101,8 @@ class DoubleGalvoPanel(wx.Panel):
     def y_changed(self, event):
         print 'y', int(event.GetValue())
 
-app = wx.App(False)
-frame = MainWindow(None, 'Hello World')
-frame.Show(True)
-app.MainLoop()
+if __name__ == "__main__":
+    app = wx.App(False)
+    frame = MainWindow(None, 'Hello World')
+    frame.Show(True)
+    app.MainLoop()
