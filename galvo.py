@@ -8,9 +8,7 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
-        #self.panel = GalvoPanel(self)
         self.panel = DoubleGalvoPanel(self)
-
 
         #self.CreateStatusBar()
 
@@ -81,7 +79,12 @@ class DoubleGalvoPanel(wx.Panel):
         self.sizer.Add(self.inclabel, 0, wx.EXPAND)
         self.sizer.Add(self.increment, 0, wx.EXPAND)
 
-        self.SetSizer(self.sizer)
+        # outer box
+        self.box = wx.StaticBox(self, label='Galvos')
+        self.boxsizer = wx.StaticBoxSizer(self.box)
+        self.boxsizer.Add(self.sizer)
+
+        self.SetSizer(self.boxsizer)
         self.SetAutoLayout(1)
         self.sizer.Fit(self)
 
