@@ -44,71 +44,21 @@ class MainWindow(wx.Frame):
     def OnExit(self, e):
         self.Close(True)
 
-IntChangeEvent, EVT_INT_CHANGE = newevent.NewEvent()
-
-class IntPanel(wx.Panel):
-
-    def __init__(self, parent, label='X', value=0,
-            min=None, max=None, increment=1):
-
-        wx.Panel.__init__(self, parent)
-
-        self.increment = increment
-
-        self.label = wx.StaticText(self, label=label,
-                style=wx.ALIGN_RIGHT)
-
-        # make an integer control and have it send when enter key is
-        # pressed (we don't want to bind when EVT_INT is sent, or
-        # partial typings will get sent)
-        self.control = intctrl.IntCtrl(self, value=value,
-                min=min, max=max, limited=True,
-                style=wx.ALIGN_RIGHT | wx.TE_PROCESS_ENTER)
-        self.control.Bind(wx.EVT_TEXT_ENTER, self.on_enter)
-        #self.control.Bind(intctrl.EVT_INT, self.on_enter)
-
-        #increment buttons
-        self.plus  = wx.Button(self, -1, '+')
-        self.plus.Bind(wx.EVT_BUTTON, self.on_plus)
-        self.minus = wx.Button(self, -1, '-')
-        self.minus.Bind(wx.EVT_BUTTON, self.on_minus)
-
-        #horizontal sizer
-        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer.Add(self.label, 1, wx.EXPAND)
-        self.sizer.Add(self.control, 1, wx.EXPAND)
-        self.sizer.Add(self.plus, 1, wx.EXPAND)
-        self.sizer.Add(self.minus, 1, wx.EXPAND)
-
-        self.SetSizer(self.sizer)
-        self.SetAutoLayout(1)
-        self.sizer.Fit(self)
-
-    def on_plus(self, event):
-        prev = self.control.GetValue()
-        self.control.SetValue(prev + self.increment)
-        self.send()
-
-    def on_minus(self, event):
-        prev = self.control.GetValue()
-        self.control.SetValue(prev - self.increment)
-        self.send()
-
-    def on_enter(self, event):
-        self.send()
-
-    def send(self):
-        evt = IntChangeEvent(value = self.control.GetValue())
-        wx.PostEvent(self, evt)
-
 class DoubleGalvoPanel(wx.Panel):
 
     def __init__(self, parent):
 
         wx.Panel.__init__(self, parent)
 
-        self.X = IntPanel(self, 'X', 2048, 1,4096)
-        self.Y = IntPanel(self, 'Y', 2048, 1, 4096)
+        self.Xlabel =  wx.StaticText(self, label='X',
+                                     style=wx.ALIGN_RIGHT)
+        self.X = wx.SpinCtrlDouble(self, value='2048',
+                                   min=1, max=4095)
+
+        self.Ylabel =  wx.StaticText(self, label='Y',
+                                     style=wx.ALIGN_RIGHT)
+        self.Y = wx.SpinCtrlDouble(self, value='2048',
+                                   min=1, max=4095)
 
         self.inclabel = wx.StaticText(self, label='increment',
                                       style=wx.ALIGN_RIGHT)
@@ -116,8 +66,8 @@ class DoubleGalvoPanel(wx.Panel):
                 min=1, max=100, initial=1,
                 style=wx.SP_ARROW_KEYS)
 
-        self.X.Bind(EVT_INT_CHANGE, self.x_changed)
-        self.Y.Bind(EVT_INT_CHANGE, self.y_changed)
+        self.X.Bind(wx.EVT_SPINCTRLDOUBLE, self.x_changed)
+        self.Y.Bind(wx.EVT_SPINCTRLDOUBLE, self.y_changed)
 
         # the EVT_SPINCTRL event is issued whenever the entered value
         # changes, whether by pressing the up/down buttons, or the
@@ -129,14 +79,24 @@ class DoubleGalvoPanel(wx.Panel):
         self.increment.Bind(wx.EVT_SPINCTRL, self.newinc)
 
         # horizontal sizer
+        self.subsizerX = wx.BoxSizer(wx.HORIZONTAL)
+        self.subsizerX.Add(self.Xlabel, 0, wx.EXPAND)
+        self.subsizerX.Add(self.X, 0, wx.EXPAND)
+
+        # horizontal sizer
+        self.subsizerY = wx.BoxSizer(wx.HORIZONTAL)
+        self.subsizerY.Add(self.Ylabel, 0, wx.EXPAND)
+        self.subsizerY.Add(self.Y, 0, wx.EXPAND)
+
+        # horizontal sizer
         self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.subsizer.Add(self.inclabel, 0, wx.EXPAND)
         self.subsizer.Add(self.increment, 0, wx.EXPAND)
 
         # vertical sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.X, 0, wx.EXPAND)
-        self.sizer.Add(self.Y, 0, wx.EXPAND)
+        self.sizer.Add(self.subsizerX, 0, wx.EXPAND)
+        self.sizer.Add(self.subsizerY, 0, wx.EXPAND)
         self.sizer.Add(self.subsizer, 0, wx.EXPAND)
 
         self.SetSizer(self.sizer)
@@ -146,14 +106,14 @@ class DoubleGalvoPanel(wx.Panel):
     def newinc(self, event):
         newval = event.GetInt()
         print newval
-        self.X.increment = newval
-        self.Y.increment = newval
+        self.X.SetIncrement(newval)
+        self.Y.SetIncrement(newval)
 
     def x_changed(self, event):
-        print 'x', event.value
+        print 'x', int(event.GetValue())
 
     def y_changed(self, event):
-        print 'y', event.value
+        print 'y', int(event.GetValue())
 
 app = wx.App(False)
 frame = MainWindow(None, 'Hello World')
