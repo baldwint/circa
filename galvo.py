@@ -2,12 +2,6 @@ from __future__ import division
 
 import wx
 from wx.lib import intctrl, newevent
-import os
-
-
-from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
-from matplotlib.figure import Figure
-import numpy as n
 
 class MainWindow(wx.Frame):
 
@@ -78,26 +72,14 @@ class DoubleGalvoPanel(wx.Panel):
         # focus, even when the value has not changed
         self.increment.Bind(wx.EVT_SPINCTRL, self.newinc)
 
-        # horizontal sizer
-        self.subsizerX = wx.BoxSizer(wx.HORIZONTAL)
-        self.subsizerX.Add(self.Xlabel, 0, wx.EXPAND)
-        self.subsizerX.Add(self.X, 0, wx.EXPAND)
-
-        # horizontal sizer
-        self.subsizerY = wx.BoxSizer(wx.HORIZONTAL)
-        self.subsizerY.Add(self.Ylabel, 0, wx.EXPAND)
-        self.subsizerY.Add(self.Y, 0, wx.EXPAND)
-
-        # horizontal sizer
-        self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
-        self.subsizer.Add(self.inclabel, 0, wx.EXPAND)
-        self.subsizer.Add(self.increment, 0, wx.EXPAND)
-
-        # vertical sizer
-        self.sizer = wx.BoxSizer(wx.VERTICAL)
-        self.sizer.Add(self.subsizerX, 0, wx.EXPAND)
-        self.sizer.Add(self.subsizerY, 0, wx.EXPAND)
-        self.sizer.Add(self.subsizer, 0, wx.EXPAND)
+        # flex grid sizer
+        self.sizer = wx.FlexGridSizer(rows=3, cols=2)
+        self.sizer.Add(self.Xlabel, 0, wx.EXPAND)
+        self.sizer.Add(self.X, 0, wx.EXPAND)
+        self.sizer.Add(self.Ylabel, 0, wx.EXPAND)
+        self.sizer.Add(self.Y, 0, wx.EXPAND)
+        self.sizer.Add(self.inclabel, 0, wx.EXPAND)
+        self.sizer.Add(self.increment, 0, wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
