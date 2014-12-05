@@ -74,46 +74,49 @@ class ScanPanel(wx.Panel):
         self.increment.Bind(wx.EVT_SPINCTRL, self.update_thing)
         self.exposure.Bind(wx.EVT_SPINCTRLDOUBLE, self.update_thing)
 
+        self.summary = wx.StaticText(self, label='',
+                style=wx.ALIGN_CENTER)
+        self.button = wx.Button(self, label='Start Scan')
+
         # flex grid sizer
-        self.sizer = wx.FlexGridSizer(rows=3, cols=4,
-                                      vgap=5, hgap=5)
+        self.sizer = wx.GridBagSizer(vgap=5, hgap=5)
 
         self.sizer.Add(wx.StaticText(self, label='X',
                                      style=wx.ALIGN_RIGHT),
-                                     0, wx.EXPAND)
-        self.sizer.Add(self.Xmin, 0, wx.EXPAND)
+                       flag=wx.EXPAND, pos=(0,0))
+        self.sizer.Add(self.Xmin, flag=wx.EXPAND, pos=(0,1))
         self.sizer.Add(wx.StaticText(self, label='to',
-                                     style=wx.ALIGN_RIGHT),
-                                     0, wx.EXPAND)
-        self.sizer.Add(self.Xmax, 0, wx.EXPAND)
+                       style=wx.ALIGN_RIGHT),
+                       flag=wx.EXPAND, pos=(0,2))
+        self.sizer.Add(self.Xmax, flag=wx.EXPAND, pos=(0,3))
 
         self.sizer.Add(wx.StaticText(self, label='Y',
                                      style=wx.ALIGN_RIGHT),
-                                     0, wx.EXPAND)
-        self.sizer.Add(self.Ymin, 0, wx.EXPAND)
+                       flag=wx.EXPAND, pos=(1,0))
+        self.sizer.Add(self.Ymin, flag=wx.EXPAND, pos=(1,1))
         self.sizer.Add(wx.StaticText(self, label='to',
                                      style=wx.ALIGN_RIGHT),
-                                     0, wx.EXPAND)
-        self.sizer.Add(self.Ymax, 0, wx.EXPAND)
+                       flag=wx.EXPAND, pos=(1,2))
+        self.sizer.Add(self.Ymax, flag=wx.EXPAND, pos=(1,3))
 
         self.sizer.Add(wx.StaticText(self, label='increment',
                                      style=wx.ALIGN_RIGHT),
-                                     0, wx.EXPAND)
-        self.sizer.Add(self.increment, 0, wx.EXPAND)
+                       flag=wx.EXPAND, pos=(2,0))
+        self.sizer.Add(self.increment, flag=wx.EXPAND, pos=(2,1))
         self.sizer.Add(wx.StaticText(self, label='t',
                                      style=wx.ALIGN_RIGHT),
-                                     0, wx.EXPAND)
-        self.sizer.Add(self.exposure, 0, wx.EXPAND)
+                       flag=wx.EXPAND, pos=(2,2))
+        self.sizer.Add(self.exposure, flag=wx.EXPAND, pos=(2,3))
 
-        self.summary = wx.StaticText(self, label='')
-        self.button = wx.Button(self, label='Start Scan')
+        self.sizer.Add(self.summary, flag=wx.EXPAND,
+                pos=(3,0), span=(1,4))
+        self.sizer.Add(self.button, flag=wx.EXPAND,
+                pos=(4,0), span=(1,4))
 
         # outer box
         self.box = wx.StaticBox(self, label='Scan parameters')
         self.boxsizer = wx.StaticBoxSizer(self.box, orient=wx.VERTICAL)
         self.boxsizer.Add(self.sizer)
-        self.boxsizer.Add(self.summary)
-        self.boxsizer.Add(self.button)
 
         self.SetSizer(self.boxsizer)
         self.SetAutoLayout(1)
@@ -131,7 +134,9 @@ class ScanPanel(wx.Panel):
         seconds = int(t * xspan * yspan)
         td = datetime.timedelta(seconds=seconds)
         label = "%dx%d, %s" % (xspan, yspan, str(td))
+        # http://stackoverflow.com/questions/15965254/what-is-the-correct-way-to-change-statictext-label
         self.summary.SetLabel(label)
+        self.sizer.Layout()
 
 if __name__ == "__main__":
     app = wx.App(False)
