@@ -109,25 +109,45 @@ class DoubleGalvoPanel(wx.Panel):
 
         self.X = IntPanel(self, 'X', 2048, 1,4096)
         self.Y = IntPanel(self, 'Y', 2048, 1, 4096)
-        self.increment = IntPanel(self, 'increment',
-                                    1, 1, 100)
+
+        self.inclabel = wx.StaticText(self, label='increment',
+                                      style=wx.ALIGN_RIGHT)
+        self.increment = wx.SpinCtrl(self, value='1',
+                min=1, max=100, initial=1,
+                style=wx.SP_ARROW_KEYS)
 
         self.X.Bind(EVT_INT_CHANGE, self.x_changed)
         self.Y.Bind(EVT_INT_CHANGE, self.y_changed)
-        self.increment.Bind(EVT_INT_CHANGE, self.newinc)
 
+        # the EVT_SPINCTRL event is issued whenever the entered value
+        # changes, whether by pressing the up/down buttons, or the
+        # arrow keys, or manual entry. For manual entry, it is only
+        # issued when the text box loses focus (tabbing away, or
+        # selecting another window) AND the value has changed.
+        # HOWEVER, on Mac OS X, it seems to be issued twice on losing
+        # focus, even when the value has not changed
+        self.increment.Bind(wx.EVT_SPINCTRL, self.newinc)
+
+        # horizontal sizer
+        self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.subsizer.Add(self.inclabel, 0, wx.EXPAND)
+        self.subsizer.Add(self.increment, 0, wx.EXPAND)
+
+        # vertical sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.sizer.Add(self.X, 0, wx.EXPAND)
         self.sizer.Add(self.Y, 0, wx.EXPAND)
-        self.sizer.Add(self.increment, 0, wx.EXPAND)
+        self.sizer.Add(self.subsizer, 0, wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
         self.sizer.Fit(self)
 
     def newinc(self, event):
-        self.X.increment = event.value
-        self.Y.increment = event.value
+        newval = event.GetInt()
+        print newval
+        self.X.increment = newval
+        self.Y.increment = newval
 
     def x_changed(self, event):
         print 'x', event.value
