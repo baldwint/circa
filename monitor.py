@@ -63,7 +63,11 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
-        self.panel = GraphPanel(self)
+        # this has to be done before we init the MonitorPanel, because
+        # it binds to EVT_CLOSE as well
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+
+        self.panel = MonitorPanel(self, silly_gen())
 
         #self.CreateStatusBar()
 
@@ -81,7 +85,6 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
 
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         #self.Show(True)
 
@@ -97,24 +100,29 @@ class MainWindow(wx.Frame):
         self.Close(True)
 
     def OnClose(self, e):
-        # wait for worker to finish
-        self.panel.worker.abort()
-        self.panel.worker.join()
+        print 'frame close event'
         self.Destroy()
 
-class GraphPanel(wx.Panel):
+class MonitorPanel(wx.Panel):
+    """
+    Panel encompassing a line monitor graph.
 
-    def __init__(self, parent):
+    Pulls x,y data from the provided generator `datagen`
+    and plots a live 2D graph.
+
+    """
+
+    def __init__(self, parent, datagen):
 
         wx.Panel.__init__(self, parent)
 
-        self.datagen = silly_gen()
+        self.datagen = datagen
 
         fig = Figure()
         self.ax = fig.add_subplot(111)
 
         # maintain x and y lists (we'll append to these as we go)
-        self.setup_deques()
+        self.setup_deques([], [])
 
         self.line, = self.ax.plot(self.x, self.y)
 
@@ -145,12 +153,9 @@ class GraphPanel(wx.Panel):
 
         self.start_worker()
         self.Bind(EVT_RESULT, self.on_result)
+        parent.Bind(wx.EVT_CLOSE, self.OnClose)
 
-    def setup_deques(self, maxlen=None, init=None):
-        if init is not None:
-            x,y = init
-        else:
-            x,y = [],[]
+    def setup_deques(self, x, y, maxlen=None):
         self.x = deque(x, maxlen)
         self.y = deque(y, maxlen)
 
@@ -180,7 +185,15 @@ class GraphPanel(wx.Panel):
             maxlen = self.spinbox.GetValue()
         else:
             maxlen = None
-        self.setup_deques(maxlen=maxlen, init=(self.x, self.y))
+        self.setup_deques(self.x, self.y, maxlen=maxlen)
+
+    def OnClose(self, e):
+        # wait for worker to finish
+        print 'panel close event'
+        self.worker.abort()
+        self.worker.join()
+        # now pass it up to the next handler
+        e.Skip()
 
 if __name__ == "__main__":
     app = wx.App(False)
