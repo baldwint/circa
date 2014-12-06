@@ -18,7 +18,7 @@ def silly_gen(inc=0.1):
     pt = 0.
     while True:
         sleep(0.1)
-        rl = n.sin(2 * n.pi * pt) + 6
+        rl = n.sin(2 * n.pi * pt) + n.sin(2 * n.pi * pt / 50.)
         rl += 0.1* n.random.randn()
         yield pt, rl
         pt += inc
@@ -114,18 +114,30 @@ class GraphPanel(wx.Panel):
         self.ax = fig.add_subplot(111)
 
         # maintain x and y lists (we'll append to these as we go)
-        maxlen = None
-        self.x = deque([], maxlen)
-        self.y = deque([], maxlen)
+        self.setup_deques()
 
         self.line, = self.ax.plot(self.x, self.y)
 
         self.canvas = FigureCanvasWxAgg(self, -1, fig)
         self.canvas.draw()
 
+        self.checkbox = wx.CheckBox(self, label="Limit to")
+        self.Bind(wx.EVT_CHECKBOX, self.impose_limit)
+        self.spinbox = wx.SpinCtrlDouble(self,
+                value='100', min=10, max=10000, inc=10)
+        self.Bind(wx.EVT_SPINCTRLDOUBLE, self.impose_limit)
+
+        self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.subsizer.Add(self.checkbox, 0, wx.EXPAND)
+        self.subsizer.Add(self.spinbox, 1, wx.EXPAND)
+        self.subsizer.Add(wx.StaticText(self, label='data points'),
+                0, wx.EXPAND)
+
         self.box = wx.StaticBox(self, label="Monitor")
-        self.sizer = wx.StaticBoxSizer(self.box)
+        self.sizer = wx.StaticBoxSizer(self.box, orient=wx.VERTICAL)
         self.sizer.Add(self.canvas, 1, wx.EXPAND)
+        self.sizer.AddSpacer(5)
+        self.sizer.Add(self.subsizer, 0, wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
@@ -133,6 +145,14 @@ class GraphPanel(wx.Panel):
 
         self.start_worker()
         self.Bind(EVT_RESULT, self.on_result)
+
+    def setup_deques(self, maxlen=None, init=None):
+        if init is not None:
+            x,y = init
+        else:
+            x,y = [],[]
+        self.x = deque(x, maxlen)
+        self.y = deque(y, maxlen)
 
     def start_worker(self):
         def getnext():
@@ -154,6 +174,13 @@ class GraphPanel(wx.Panel):
             self.ax.relim()
             self.ax.autoscale_view()
             self.canvas.draw()
+
+    def impose_limit(self, event):
+        if self.checkbox.IsChecked():
+            maxlen = self.spinbox.GetValue()
+        else:
+            maxlen = None
+        self.setup_deques(maxlen=maxlen, init=(self.x, self.y))
 
 if __name__ == "__main__":
     app = wx.App(False)
