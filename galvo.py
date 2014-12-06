@@ -3,42 +3,31 @@ from __future__ import division
 import wx
 from wx.lib import intctrl, newevent
 
-class MainWindow(wx.Frame):
+class GalvoWindow(wx.Frame):
 
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, xcall=None, ycall=None):
         wx.Frame.__init__(self, parent, title=title, size=(200, 150))
 
-        self.panel = DoubleGalvoPanel(self)
-
-        #self.CreateStatusBar()
+        self.panel = DoubleGalvoPanel(self, xcall=xcall, ycall=ycall)
 
         filemenu = wx.Menu()
 
-        menuAbout = filemenu.Append(wx.ID_ABOUT, "&About", " Info plz")
-        #filemenu.AppendSeparator()
         menuExit = filemenu.Append(wx.ID_EXIT, "E&xit", " Stop program")
 
         menuBar = wx.MenuBar()
         menuBar.Append(filemenu, "&File")
         self.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
 
         #self.Show(True)
-
-    def OnAbout(self, e):
-        dlg = wx.MessageDialog(self, "small text editior",
-                'about this prog', wx.OK)
-        dlg.ShowModal()
-        dlg.Destroy()
 
     def OnExit(self, e):
         self.Close(True)
 
 class DoubleGalvoPanel(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, xcall=None, ycall=None):
 
         wx.Panel.__init__(self, parent)
 
@@ -57,6 +46,9 @@ class DoubleGalvoPanel(wx.Panel):
         self.increment = wx.SpinCtrl(self, value='1',
                 min=1, max=100, initial=1,
                 style=wx.SP_ARROW_KEYS)
+
+        self.xcall = xcall
+        self.ycall = ycall
 
         self.X.Bind(wx.EVT_SPINCTRLDOUBLE, self.x_changed)
         self.Y.Bind(wx.EVT_SPINCTRLDOUBLE, self.y_changed)
@@ -91,18 +83,30 @@ class DoubleGalvoPanel(wx.Panel):
 
     def newinc(self, event):
         newval = event.GetInt()
-        print newval
+        #print newval
         self.X.SetIncrement(newval)
         self.Y.SetIncrement(newval)
 
     def x_changed(self, event):
-        print 'x', int(event.GetValue())
+        x = int(event.GetValue())
+        if self.xcall is not None:
+            self.xcall(x)
 
     def y_changed(self, event):
-        print 'y', int(event.GetValue())
+        y = int(event.GetValue())
+        if self.ycall is not None:
+            self.ycall(y)
 
 if __name__ == "__main__":
+
+    def xcallback(x):
+        print 'x', x
+
+    def ycallback(x):
+        print 'y', y
+
     app = wx.App(False)
-    frame = MainWindow(None, 'Hello World')
+    frame = GalvoWindow(None, 'Hello World',
+            xcall=xcallback, ycall=ycallback)
     frame.Show(True)
     app.MainLoop()
