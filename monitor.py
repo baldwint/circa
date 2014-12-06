@@ -58,37 +58,24 @@ class WorkerThread(threading.Thread):
         self._want_abort = 1
 
 
-class MainWindow(wx.Frame):
+class MonitorWindow(wx.Frame):
 
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, datagen=None):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
-        self.panel = MonitorPanel(self, silly_gen())
+        if datagen is None:
+            datagen = silly_gen()
 
-        #self.CreateStatusBar()
+        self.panel = MonitorPanel(self, datagen)
 
         filemenu = wx.Menu()
-
-        menuAbout = filemenu.Append(wx.ID_ABOUT, "&About", " Info plz")
-        #filemenu.AppendSeparator()
         menuExit = filemenu.Append(wx.ID_EXIT, "E&xit", " Stop program")
-        menuOpen = filemenu.Append(wx.ID_OPEN, "&Open", " open a file")
 
         menuBar = wx.MenuBar()
         menuBar.Append(filemenu, "&File")
         self.SetMenuBar(menuBar)
 
-        self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
-
-
-        #self.Show(True)
-
-    def OnAbout(self, e):
-        dlg = wx.MessageDialog(self, "small text editior",
-                'about this prog', wx.OK)
-        dlg.ShowModal()
-        dlg.Destroy()
 
     def OnExit(self, e):
         # Runs when the 'Exit' menu option is selected,
@@ -187,6 +174,6 @@ class MonitorPanel(wx.Panel):
 
 if __name__ == "__main__":
     app = wx.App(False)
-    frame = MainWindow(None, 'Hello World')
+    frame = MonitorWindow(None, 'Monitor', datagen=silly_gen())
     frame.Show(True)
     app.MainLoop()
