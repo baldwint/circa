@@ -63,10 +63,6 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
-        # this has to be done before we init the MonitorPanel, because
-        # it binds to EVT_CLOSE as well
-        self.Bind(wx.EVT_CLOSE, self.OnClose)
-
         self.panel = MonitorPanel(self, silly_gen())
 
         #self.CreateStatusBar()
@@ -99,9 +95,6 @@ class MainWindow(wx.Frame):
         # but not when the x is hit
         self.Close(True)
 
-    def OnClose(self, e):
-        print 'frame close event'
-        self.Destroy()
 
 class MonitorPanel(wx.Panel):
     """
@@ -153,7 +146,11 @@ class MonitorPanel(wx.Panel):
 
         self.start_worker()
         self.Bind(EVT_RESULT, self.on_result)
-        parent.Bind(wx.EVT_CLOSE, self.OnClose)
+
+    def __del__(self):
+        # tell worker to finish
+        self.worker.abort()
+        self.worker.join()
 
     def setup_deques(self, x, y, maxlen=None):
         self.x = deque(x, maxlen)
@@ -187,13 +184,6 @@ class MonitorPanel(wx.Panel):
             maxlen = None
         self.setup_deques(self.x, self.y, maxlen=maxlen)
 
-    def OnClose(self, e):
-        # wait for worker to finish
-        print 'panel close event'
-        self.worker.abort()
-        self.worker.join()
-        # now pass it up to the next handler
-        e.Skip()
 
 if __name__ == "__main__":
     app = wx.App(False)
