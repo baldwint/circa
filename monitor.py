@@ -81,6 +81,8 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
 
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+
         #self.Show(True)
 
     def OnAbout(self, e):
@@ -90,7 +92,15 @@ class MainWindow(wx.Frame):
         dlg.Destroy()
 
     def OnExit(self, e):
+        # Runs when the 'Exit' menu option is selected,
+        # but not when the x is hit
         self.Close(True)
+
+    def OnClose(self, e):
+        # wait for worker to finish
+        self.panel.worker.abort()
+        self.panel.worker.join()
+        self.Destroy()
 
 class GraphPanel(wx.Panel):
 
