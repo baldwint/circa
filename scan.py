@@ -4,6 +4,7 @@ import wx
 from wx.lib import intctrl, newevent
 
 import datetime
+import numpy as n
 
 class MainWindow(wx.Frame):
 
@@ -78,6 +79,8 @@ class ScanPanel(wx.Panel):
                 style=wx.ALIGN_CENTER)
         self.button = wx.Button(self, label='Start Scan')
 
+        self.button.Bind(wx.EVT_BUTTON, self.on_button)
+
         # flex grid sizer
         self.sizer = wx.GridBagSizer(vgap=5, hgap=5)
 
@@ -122,21 +125,36 @@ class ScanPanel(wx.Panel):
         self.SetAutoLayout(1)
         self.sizer.Fit(self)
 
-    def update_thing(self, event):
+    def get_values(self):
         xmin = int(self.Xmin.GetValue())
         xmax = int(self.Xmax.GetValue())
         ymin = int(self.Ymin.GetValue())
         ymax = int(self.Ymax.GetValue())
         inc  = int(self.increment.GetValue())
         t    = self.exposure.GetValue()
-        xspan = (xmax - xmin) // inc
-        yspan = (ymax - ymin) // inc
+        X = n.arange(xmin, xmax, inc)
+        Y = n.arange(ymin, ymax, inc)
+        return X, Y, t
+
+    def update_thing(self, event):
+        X, Y, t = self.get_values()
+        xspan = len(X)
+        yspan = len(Y)
         seconds = int(t * xspan * yspan)
         td = datetime.timedelta(seconds=seconds)
         label = "%dx%d, %s" % (xspan, yspan, str(td))
         # http://stackoverflow.com/questions/15965254/what-is-the-correct-way-to-change-statictext-label
         self.summary.SetLabel(label)
         self.sizer.Layout()
+
+    def on_button(self, event):
+        """ construct appropriate numpy arrays """
+        X, Y, t = self.get_values()
+        self.start_scan(X, Y, t)
+
+    def start_scan(self, *args):
+        print 'hi'
+
 
 if __name__ == "__main__":
     app = wx.App(False)

@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 def chunk(gen, n=1):
     # not perfect unless n perfectly divides the lenght of gen
     while True:
@@ -32,6 +34,7 @@ def dumb_gen(X,Y):
 from monitor import WorkerThread, EVT_RESULT
 
 from ui import ImagePanel
+from scan import ScanPanel
 import wx
 
 class MainWindow(wx.Frame):
@@ -47,12 +50,18 @@ class MainWindow(wx.Frame):
         self.panel = ImagePanel(self)
         self.panel.update_image(vector, X, Y)
 
-        gen = chunk(yielding_fromiter(dumb_gen(X, Y), vector),
-                n = vector.shape[-1])
+        def dummy(*args):
+            print('yo', args)
+
+        self.control = ScanPanel(self)
+        self.control.start_scan = dummy
 
         self.vector = vector
+        gen = chunk(yielding_fromiter(dumb_gen(X, Y), vector),
+                n = vector.shape[-1])
         self.datagen = gen
 
+        # menus
         filemenu = wx.Menu()
 
         menuExit = filemenu.Append(wx.ID_EXIT, "E&xit", " Stop program")
@@ -62,6 +71,15 @@ class MainWindow(wx.Frame):
         self.SetMenuBar(menuBar)
 
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
+
+        # sizers
+        self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer.Add(self.panel, 1, wx.EXPAND)
+        self.sizer.Add(self.control, 0, wx.EXPAND)
+
+        self.SetSizer(self.sizer)
+        self.SetAutoLayout(1)
+        self.sizer.Fit(self)
 
         self.start_worker()
         self.Bind(EVT_RESULT, self.on_result)
