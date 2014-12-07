@@ -56,13 +56,17 @@ from imaging import show_image, add_hist_to_cbar
 
 class ImagePanel(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, vector=None):
 
         wx.Panel.__init__(self, parent)
 
+        if vector is None:
+            vector = n.ndarray((2048, 2048))
+            vector[:] = n.nan
+
         fig = Figure()
         self.ax = fig.add_subplot(111)
-        self.im = self.ax.imshow(n.zeros((2048,2048)))
+        self.im = self.ax.imshow(vector)
 
         self.cbar = fig.colorbar(self.im, aspect=8)
 
@@ -107,12 +111,22 @@ class ImagePanel(wx.Panel):
 
     def open(self, dirname, filename):
         with n.load(os.path.join(dirname, filename)) as npz:
-            image = npz['image']
+            self.update_image(npz['image'], npz['X'], npz['Y'])
 
-            self.im = show_image(image, npz['X'], npz['Y'],
-                    ax=self.ax, cax=self.cbar.ax, hist=True)
+    def update_image(self, image, x, y):
+        """ load a new image."""
+        self.im = show_image(image, x, y,
+                             ax=self.ax,
+                             cax=self.cbar.ax,
+                             hist=True)
+        self.canvas.draw()
 
-            self.canvas.draw()
+    def update_data(self, newdata):
+        """ The image contents have changed, but not the bounds. """
+        self.im.set_data(newdata)
+        self.im.autoscale()
+        self.cbar.on_mappable_changed(self.im)
+        self.canvas.draw()
 
 class DragState(object):
     """

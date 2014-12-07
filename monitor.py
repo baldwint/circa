@@ -32,10 +32,10 @@ ResultEvent, EVT_RESULT = wx.lib.newevent.NewEvent()
 # Thread class that executes processing
 class WorkerThread(threading.Thread):
     """Worker Thread Class."""
-    def __init__(self, notify_window, func):
+    def __init__(self, notify_window, gen):
         """Init Worker Thread Class."""
         threading.Thread.__init__(self)
-        self.func = func
+        self.gen = gen
         self._notify_window = notify_window
         self._want_abort = 0
 
@@ -43,13 +43,12 @@ class WorkerThread(threading.Thread):
         """Run Worker Thread."""
         # This is the code executing in the new thread.
         # peek at the abort variable once in a while to see if we should stop
-        while True:
+        for data in self.gen:
             if self._want_abort:
                 # Use a result of None to acknowledge the abort
                 wx.PostEvent(self._notify_window, ResultEvent(data=None))
                 return
             # Send data to the parent thread
-            data = self.func()
             wx.PostEvent(self._notify_window, ResultEvent(data=data))
 
     def abort(self):
@@ -144,10 +143,7 @@ class MonitorPanel(wx.Panel):
         self.y = deque(y, maxlen)
 
     def start_worker(self):
-        def getnext():
-            return next(self.datagen)
-
-        self.worker = WorkerThread(self, getnext)
+        self.worker = WorkerThread(self, self.datagen)
         self.worker.start()
 
     def on_result(self, event):
