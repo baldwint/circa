@@ -42,24 +42,10 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
-        X = n.arange(40,80,1)
-        Y = n.arange(20,40,1)
-        vector = n.ndarray(Y.shape + X.shape)
-        vector[:] = n.nan
-
+        #panels
         self.panel = ImagePanel(self)
-        self.panel.update_image(vector, X, Y)
-
-        def dummy(*args):
-            print('yo', args)
-
         self.control = ScanPanel(self)
-        self.control.start_scan = dummy
-
-        self.vector = vector
-        gen = chunk(yielding_fromiter(dumb_gen(X, Y), vector),
-                n = vector.shape[-1])
-        self.datagen = gen
+        self.control.start_scan = self.start_scan
 
         # menus
         filemenu = wx.Menu()
@@ -81,9 +67,6 @@ class MainWindow(wx.Frame):
         self.SetAutoLayout(1)
         self.sizer.Fit(self)
 
-        self.start_worker()
-        self.Bind(EVT_RESULT, self.on_result)
-
     def __del__(self):
         # tell worker to finish
         self.worker.abort()
@@ -91,6 +74,21 @@ class MainWindow(wx.Frame):
 
     def OnExit(self, e):
         self.Close(True)
+
+    def start_scan(self, X, Y, t):
+
+        vector = n.ndarray(Y.shape + X.shape)
+        vector[:] = n.nan
+
+        self.panel.update_image(vector, X, Y)
+
+        self.vector = vector
+        gen = chunk(yielding_fromiter(dumb_gen(X, Y), vector),
+                n = vector.shape[-1])
+        self.datagen = gen
+
+        self.start_worker()
+        self.Bind(EVT_RESULT, self.on_result)
 
     def start_worker(self):
         self.worker = WorkerThread(self, self.datagen)

@@ -125,6 +125,9 @@ class ScanPanel(wx.Panel):
         self.SetAutoLayout(1)
         self.sizer.Fit(self)
 
+        # finally, update the label to initial value
+        self.update_thing(None)
+
     def get_values(self):
         xmin = int(self.Xmin.GetValue())
         xmax = int(self.Xmax.GetValue())
