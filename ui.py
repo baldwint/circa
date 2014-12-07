@@ -56,13 +56,12 @@ from imaging import show_image, add_hist_to_cbar
 
 class ImagePanel(wx.Panel):
 
-    def __init__(self, parent, vector=None):
+    def __init__(self, parent):
 
         wx.Panel.__init__(self, parent)
 
-        if vector is None:
-            vector = n.ndarray((2048, 2048))
-            vector[:] = n.nan
+        vector = n.ndarray((2048, 2048))
+        vector[:] = n.nan
 
         fig = Figure()
         self.ax = fig.add_subplot(111)

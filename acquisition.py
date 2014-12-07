@@ -23,10 +23,11 @@ def yielding_fromiter(gen, result):
 from time import sleep
 import numpy as n
 
-def dumb_gen(target):
-    for i in range(target.size):
-        sleep(.01)
-        yield int(200000 * n.random.random())
+def dumb_gen(X,Y):
+    for y in Y:
+        for x in X:
+            sleep(.01)
+            yield int(200000 * n.random.random())
 
 from monitor import WorkerThread, EVT_RESULT
 
@@ -35,14 +36,18 @@ import wx
 
 class MainWindow(wx.Frame):
 
-    def __init__(self, parent, title, datagen=None):
+    def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
-        vector = n.ndarray((20,40))
+        X = n.arange(40,80,1)
+        Y = n.arange(20,40,1)
+        vector = n.ndarray(Y.shape + X.shape)
         vector[:] = n.nan
 
-        self.panel = ImagePanel(self, vector=vector)
-        gen = chunk(yielding_fromiter(dumb_gen(vector), vector),
+        self.panel = ImagePanel(self)
+        self.panel.update_image(vector, X, Y)
+
+        gen = chunk(yielding_fromiter(dumb_gen(X, Y), vector),
                 n = vector.shape[-1])
 
         self.vector = vector
