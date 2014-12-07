@@ -114,6 +114,8 @@ class ImagePanel(wx.Panel):
 
     def update_image(self, image, x, y):
         """ load a new image."""
+        self.ax.clear()  # remove any previous images
+                         # would be cool to have a control for this
         self.im = show_image(image, x, y,
                              ax=self.ax,
                              cax=self.cbar.ax,
