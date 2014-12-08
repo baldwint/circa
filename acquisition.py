@@ -31,7 +31,7 @@ def dumb_gen(X,Y):
             sleep(.01)
             yield int(200000 * n.random.random())
 
-from monitor import WorkerThread, EVT_RESULT, EVT_FINISHED
+from monitor import WorkerThread, EVT_RESULT
 
 
 from ui import ImagePanel
@@ -45,8 +45,9 @@ class MainWindow(wx.Frame):
 
         #panels
         self.panel = ImagePanel(self)
-        self.control = ScanPanel(self, abort_scan=self.stop_worker)
-        self.control.start_scan = self.start_scan
+        self.control = ScanPanel(self, self.scangen, abortable=True)
+
+        self.control.Bind(EVT_RESULT, self.on_result)
 
         # menus
         filemenu = wx.Menu()
@@ -68,14 +69,10 @@ class MainWindow(wx.Frame):
         self.SetAutoLayout(1)
         self.sizer.Fit(self)
 
-    def __del__(self):
-        # tell worker to finish
-        self.stop_worker()
-
     def OnExit(self, e):
         self.Close(True)
 
-    def start_scan(self, X, Y, t):
+    def scangen(self, X, Y, t):
 
         vector = n.ndarray(Y.shape + X.shape)
         vector[:] = n.nan
@@ -85,19 +82,8 @@ class MainWindow(wx.Frame):
         self.vector = vector
         gen = chunk(yielding_fromiter(dumb_gen(X, Y), vector),
                 n = vector.shape[-1])
-        self.datagen = gen
 
-        self.start_worker()
-        self.Bind(EVT_RESULT, self.on_result)
-        self.Bind(EVT_FINISHED, self.control.on_scan_finished)
-
-    def start_worker(self):
-        self.worker = WorkerThread(self, self.datagen)
-        self.worker.start()
-
-    def stop_worker(self):
-        self.worker.abort()
-        self.worker.join()
+        return gen
 
     def on_result(self, event):
         self.panel.update_data(self.vector)

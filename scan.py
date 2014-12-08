@@ -39,19 +39,27 @@ class MainWindow(wx.Frame):
     def OnExit(self, e):
         self.Close(True)
 
+from monitor import WorkerThread, EVT_FINISHED
+
 class ScanPanel(wx.Panel):
 
-    def __init__(self, parent, abort_scan=None):
+    def __init__(self, parent, scanfunc, abortable=False):
         """
-        provide callbacks to start and (optionally) abort the scan
+        scanfunc is an un-instantiated generator; it takes X, Y, t as
+        the arguments and then does whatever. This panel will
+        instantiate it when the button is pressed and run it to
+        completion in its own WorkerThread.
+
+        if 'abortable' is True, the button will allow the scan to be
+        terminated prematurely
 
         """
 
         wx.Panel.__init__(self, parent)
 
-        # register callback functions
-        #self.start_scan = start_scan
-        self.abort_scan = abort_scan
+        self.scanfunc = scanfunc
+        self.abortable = abortable
+        self.Bind(EVT_FINISHED, self.on_scan_finished)
 
         self.Xmin = wx.SpinCtrlDouble(self, value='1800',
                                    min=1, max=4095)
@@ -165,10 +173,10 @@ class ScanPanel(wx.Panel):
             X, Y, t = self.get_values()
             self.start_scan(X, Y, t)
             self.scanning = True
-            if not callable(self.abort_scan):
+            if not self.abortable:
                 self.button.Disable()
             self.button.SetLabel('Abort Scan')
-        elif callable(self.abort_scan):
+        elif self.abortable:
             self.abort_scan()
             # on_scan_finished should get triggered by the event
 
@@ -177,12 +185,29 @@ class ScanPanel(wx.Panel):
         self.button.SetLabel('Start Scan')
         self.button.Enable()
 
-    def start_scan(self, *args):
-        print 'hi'
+    def start_scan(self, X, Y, t):
+        scangen = self.scanfunc(X, Y, t)
+        self.worker = WorkerThread(self, scangen)
+        self.worker.start()
+
+    def abort_scan(self):
+        self.worker.abort()
+        self.worker.join()
+
+    def __del__(self):
+        self.abort_scan()
 
 
 if __name__ == "__main__":
+
+    from time import sleep
+    def mytask(*args):
+        print 'starting'
+        yield
+        sleep(0.8)
+        print 'done'
+
     app = wx.App(False)
-    frame = MainWindow(None, 'Hello World')
+    frame = MainWindow(None, 'Hello World', mytask)
     frame.Show(True)
     app.MainLoop()
