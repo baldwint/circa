@@ -152,12 +152,25 @@ class ScanPanel(wx.Panel):
         ymax = int(self.Ymax.GetValue())
         inc  = int(self.increment.GetValue())
         t    = self.exposure.GetValue()
+        return xmin, xmax, ymin, ymax, inc, t
+
+    def set_values(self, xmin, xmax, ymin, ymax, inc, t=None):
+        self.Xmin.SetValue(xmin)
+        self.Xmax.SetValue(xmax)
+        self.Ymin.SetValue(ymin)
+        self.Ymax.SetValue(ymax)
+        self.increment.SetValue(inc)
+        if t is not None:
+            self.exposure.SetValue(t)
+
+    def get_arrays(self):
+        xmin, xmax, ymin, ymax, inc, t = self.get_values()
         X = n.arange(xmin, xmax, inc)
         Y = n.arange(ymin, ymax, inc)
         return X, Y, t
 
     def update_thing(self, event):
-        X, Y, t = self.get_values()
+        X, Y, t = self.get_arrays()
         xspan = len(X)
         yspan = len(Y)
         seconds = int(t * xspan * yspan)
@@ -170,7 +183,7 @@ class ScanPanel(wx.Panel):
     def on_button(self, event):
         """ respond to button press"""
         if not self.scanning:
-            X, Y, t = self.get_values()
+            X, Y, t = self.get_arrays()
             self.start_scan(X, Y, t)
             self.scanning = True
             if not self.abortable:
