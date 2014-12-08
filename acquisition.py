@@ -31,7 +31,8 @@ def dumb_gen(X,Y):
             sleep(.01)
             yield int(200000 * n.random.random())
 
-from monitor import WorkerThread, EVT_RESULT
+from monitor import WorkerThread, EVT_RESULT, EVT_FINISHED
+
 
 from ui import ImagePanel
 from scan import ScanPanel
@@ -44,7 +45,7 @@ class MainWindow(wx.Frame):
 
         #panels
         self.panel = ImagePanel(self)
-        self.control = ScanPanel(self)
+        self.control = ScanPanel(self, abort_scan=self.stop_worker)
         self.control.start_scan = self.start_scan
 
         # menus
@@ -69,8 +70,7 @@ class MainWindow(wx.Frame):
 
     def __del__(self):
         # tell worker to finish
-        self.worker.abort()
-        self.worker.join()
+        self.stop_worker()
 
     def OnExit(self, e):
         self.Close(True)
@@ -89,10 +89,15 @@ class MainWindow(wx.Frame):
 
         self.start_worker()
         self.Bind(EVT_RESULT, self.on_result)
+        self.Bind(EVT_FINISHED, self.control.on_scan_finished)
 
     def start_worker(self):
         self.worker = WorkerThread(self, self.datagen)
         self.worker.start()
+
+    def stop_worker(self):
+        self.worker.abort()
+        self.worker.join()
 
     def on_result(self, event):
         self.panel.update_data(self.vector)

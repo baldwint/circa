@@ -25,9 +25,14 @@ def silly_gen(inc=0.1):
 
 # threading code mostly stolen from http://wiki.wxpython.org/LongRunningTasks
 
-# Define notification event for thread completion
+# Define notification events
 import wx.lib.newevent
+
+# for new data available
 ResultEvent, EVT_RESULT = wx.lib.newevent.NewEvent()
+
+# for scan being finished
+FinishedEvent, EVT_FINISHED = wx.lib.newevent.NewEvent()
 
 # Thread class that executes processing
 class WorkerThread(threading.Thread):
@@ -45,11 +50,11 @@ class WorkerThread(threading.Thread):
         # peek at the abort variable once in a while to see if we should stop
         for data in self.gen:
             if self._want_abort:
-                # Use a result of None to acknowledge the abort
-                wx.PostEvent(self._notify_window, ResultEvent(data=None))
-                return
+                break
             # Send data to the parent thread
             wx.PostEvent(self._notify_window, ResultEvent(data=data))
+        # Signal that we are all done
+        wx.PostEvent(self._notify_window, FinishedEvent())
 
     def abort(self):
         """abort worker thread."""

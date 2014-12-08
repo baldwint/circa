@@ -8,10 +8,10 @@ import numpy as n
 
 class MainWindow(wx.Frame):
 
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, *args, **kwargs):
         wx.Frame.__init__(self, parent, title=title, size=(400, 200))
 
-        self.panel = ScanPanel(self)
+        self.panel = ScanPanel(self, *args, **kwargs)
 
         #self.CreateStatusBar()
 
@@ -41,9 +41,17 @@ class MainWindow(wx.Frame):
 
 class ScanPanel(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, abort_scan=None):
+        """
+        provide callbacks to start and (optionally) abort the scan
+
+        """
 
         wx.Panel.__init__(self, parent)
+
+        # register callback functions
+        #self.start_scan = start_scan
+        self.abort_scan = abort_scan
 
         self.Xmin = wx.SpinCtrlDouble(self, value='1800',
                                    min=1, max=4095)
@@ -126,6 +134,7 @@ class ScanPanel(wx.Panel):
         self.sizer.Fit(self)
 
         # finally, update the label to initial value
+        self.scanning = False
         self.update_thing(None)
 
     def get_values(self):
@@ -151,9 +160,22 @@ class ScanPanel(wx.Panel):
         self.sizer.Layout()
 
     def on_button(self, event):
-        """ construct appropriate numpy arrays """
-        X, Y, t = self.get_values()
-        self.start_scan(X, Y, t)
+        """ respond to button press"""
+        if not self.scanning:
+            X, Y, t = self.get_values()
+            self.start_scan(X, Y, t)
+            self.scanning = True
+            if not callable(self.abort_scan):
+                self.button.Disable()
+            self.button.SetLabel('Abort Scan')
+        elif callable(self.abort_scan):
+            self.abort_scan()
+            # on_scan_finished should get triggered by the event
+
+    def on_scan_finished(self, event):
+        self.scanning = False
+        self.button.SetLabel('Start Scan')
+        self.button.Enable()
 
     def start_scan(self, *args):
         print 'hi'
