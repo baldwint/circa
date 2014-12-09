@@ -81,7 +81,7 @@ class MainWindow(wx.Frame):
 
         # default directories
         self.open_from_dir = ''
-        self.save_to_dir = os.environ['HOME']
+        self.save_to_dir = os.path.expanduser('~')
 
         # menus
         filemenu = wx.Menu()
@@ -97,6 +97,12 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
         self.Bind(wx.EVT_MENU, self.OnSave, menuSave)
+
+        # shortcuts
+        shortcuts = wx.AcceleratorTable([
+            (wx.ACCEL_CTRL, ord('S'), wx.ID_SAVE),
+            (wx.ACCEL_CTRL, ord('O'), wx.ID_OPEN)])
+        self.SetAcceleratorTable(shortcuts)
 
         # sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
