@@ -54,6 +54,7 @@ class MainWindow(wx.Frame):
 
         menuExit = filemenu.Append(wx.ID_EXIT, "E&xit", " Stop program")
         menuOpen = filemenu.Append(wx.ID_OPEN, "&Open", " Open a file")
+        menuSave = filemenu.Append(wx.ID_SAVE, "&Save", " Save a file")
 
         menuBar = wx.MenuBar()
         menuBar.Append(filemenu, "&File")
@@ -61,6 +62,7 @@ class MainWindow(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
+        self.Bind(wx.EVT_MENU, self.OnSave, menuSave)
 
         # sizers
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
@@ -84,11 +86,24 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             # load file
             path = dlg.GetPath()
-            # display image
             with n.load(path) as npz:
-                self.panel.update_image(npz['image'], npz['X'], npz['Y'])
-            # update parameters on scan control
+                self.vector = npz['image']
+                self.X = npz['X']
+                self.Y = npz['Y']
+            # update image, and parameters on scan control
+            self.panel.update_image(self.vector, self.X, self.Y)
             self.control.set_values_from_image(self.panel.im)
+
+    def OnSave(self, e):
+        dlg = wx.FileDialog(self,
+                message="Save NPZ file",
+                defaultDir='',
+                defaultFile='',
+                wildcard="NPZ files (*.npz)|*.npz",
+                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            n.savez(path, image=self.vector, X=self.X, Y=self.Y)
 
     def scangen(self, X, Y, t):
 
@@ -97,7 +112,11 @@ class MainWindow(wx.Frame):
 
         self.panel.update_image(vector, X, Y)
 
+        # keep references to these (in case we save them)
         self.vector = vector
+        self.X = X
+        self.Y = Y
+
         gen = chunk(yielding_fromiter(dumb_gen(X, Y), vector),
                 n = vector.shape[-1])
 
