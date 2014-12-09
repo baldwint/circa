@@ -163,6 +163,17 @@ class ScanPanel(wx.Panel):
         if t is not None:
             self.exposure.SetValue(t)
 
+    def set_values_from_image(self, im):
+        # get dimension info
+        ysz, xsz = im.get_size()
+        ext = im.get_extent()
+        xmin, xmax, ymin, ymax = [int(num) for num in ext]
+        # compute spacing
+        xspacing = (xmax - xmin) / xsz
+        yspacing = (ymax - ymin) / ysz
+        assert xspacing == yspacing
+        self.set_values(xmin, xmax, ymin, ymax, xspacing)
+
     def get_arrays(self):
         xmin, xmax, ymin, ymax, inc, t = self.get_values()
         X = n.arange(xmin, xmax, inc)

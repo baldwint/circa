@@ -1,7 +1,5 @@
 from __future__ import print_function
 
-import os
-
 def chunk(gen, n=1):
     # not perfect unless n perfectly divides the lenght of gen
     while True:
@@ -85,20 +83,12 @@ class MainWindow(wx.Frame):
                 style=wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             # load file
-            filename = dlg.GetFilename()
-            dirname = dlg.GetDirectory()
-            path = os.path.join(dirname, filename)
+            path = dlg.GetPath()
             # display image
             with n.load(path) as npz:
                 self.panel.update_image(npz['image'], npz['X'], npz['Y'])
             # update parameters on scan control
-            ext = self.panel.im.get_extent()
-            xmin, xmax, ymin, ymax = [int(num) for num in ext]
-            ysz, xsz = self.panel.im.get_size()
-            xspacing = (xmax - xmin) / xsz
-            yspacing = (ymax - ymin) / ysz
-            assert xspacing == yspacing
-            self.control.set_values(xmin, xmax, ymin, ymax, xspacing)
+            self.control.set_values_from_image(self.panel.im)
 
     def scangen(self, X, Y, t):
 
