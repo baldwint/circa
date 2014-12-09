@@ -1,5 +1,13 @@
 from __future__ import print_function
 
+import os
+import itertools
+
+def get_next_filename(dir, fmt="image%03d.npz", start=1):
+    for i in itertools.count(start):
+        if fmt % i not in os.listdir(dir):
+            return fmt % i
+
 def chunk(gen, n=1):
     # not perfect unless n perfectly divides the lenght of gen
     while True:
@@ -49,6 +57,10 @@ class MainWindow(wx.Frame):
 
         self.control.Bind(EVT_RESULT, self.on_result)
 
+        # default directories
+        self.open_from_dir = ''
+        self.save_to_dir = os.environ['HOME']
+
         # menus
         filemenu = wx.Menu()
 
@@ -79,12 +91,13 @@ class MainWindow(wx.Frame):
     def OnOpen(self, e):
         dlg = wx.FileDialog(self,
                 message="Choose a file",
-                defaultDir='',
+                defaultDir=self.open_from_dir,
                 defaultFile='',
                 wildcard="NPZ files (*.npz)|*.npz",
                 style=wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             # load file
+            self.open_from_dir = dlg.GetDirectory()
             path = dlg.GetPath()
             with n.load(path) as npz:
                 self.vector = npz['image']
@@ -97,11 +110,12 @@ class MainWindow(wx.Frame):
     def OnSave(self, e):
         dlg = wx.FileDialog(self,
                 message="Save NPZ file",
-                defaultDir='',
-                defaultFile='',
+                defaultDir=self.save_to_dir,
+                defaultFile=get_next_filename(self.save_to_dir),
                 wildcard="NPZ files (*.npz)|*.npz",
                 style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
+            self.save_to_dir = dlg.GetDirectory()
             path = dlg.GetPath()
             n.savez(path, image=self.vector, X=self.X, Y=self.Y)
 
