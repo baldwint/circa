@@ -154,14 +154,16 @@ class ScanPanel(wx.Panel):
         t    = self.exposure.GetValue()
         return xmin, xmax, ymin, ymax, inc, t
 
-    def set_values(self, xmin, xmax, ymin, ymax, inc, t=None):
+    def set_values(self, xmin, xmax, ymin, ymax, inc=None, t=None):
         self.Xmin.SetValue(xmin)
         self.Xmax.SetValue(xmax)
         self.Ymin.SetValue(ymin)
         self.Ymax.SetValue(ymax)
-        self.increment.SetValue(inc)
+        if inc is not None:
+            self.increment.SetValue(inc)
         if t is not None:
             self.exposure.SetValue(t)
+        self.update_thing(None)
 
     def set_values_from_image(self, im):
         # get dimension info

@@ -42,7 +42,7 @@ def dumb_gen(X,Y):
 from monitor import WorkerThread, EVT_RESULT
 
 
-from ui import ImagePanel
+from ui import ImagePanel, DragState
 from scan import ScanPanel
 import wx
 
@@ -56,6 +56,28 @@ class MainWindow(wx.Frame):
         self.control = ScanPanel(self, self.scangen, abortable=True)
 
         self.control.Bind(EVT_RESULT, self.on_result)
+
+        # rect dragging
+        def resetbounds(state):
+            if not state.mousedown.inaxes == state.mouseup.inaxes:
+                # drag was not contained in one axes
+                return
+            elif state.mousedown.inaxes is None:
+                # drag was totally outside axes
+                return
+            if state.mousedown.inaxes == self.panel.ax:
+                xmin, xmax = sorted((state.mousedown.xdata, state.mouseup.xdata))
+                ymin, ymax = sorted((state.mousedown.ydata, state.mouseup.ydata))
+                rect = [xmin, xmax, ymin, ymax]
+                rect = [int(num) for num in rect]
+                if xmin == xmax and ymin == ymax:
+                    print('single click')
+                else:
+                    self.control.set_values(*rect)
+
+        self.ds = DragState(resetbounds)
+        self.panel.canvas.mpl_connect('button_press_event', self.ds.recv)
+        self.panel.canvas.mpl_connect('button_release_event', self.ds.recv)
 
         # default directories
         self.open_from_dir = ''
