@@ -44,6 +44,7 @@ from monitor import WorkerThread, EVT_RESULT
 
 from ui import ImagePanel, DragState
 from scan import ScanPanel
+from galvo import DoubleGalvoPanel
 import wx
 
 class MainWindow(wx.Frame):
@@ -53,6 +54,7 @@ class MainWindow(wx.Frame):
 
         #panels
         self.panel = ImagePanel(self)
+        self.galvo = DoubleGalvoPanel(self)
         self.control = ScanPanel(self, self.scangen, abortable=True)
 
         self.control.Bind(EVT_RESULT, self.on_result)
@@ -71,7 +73,7 @@ class MainWindow(wx.Frame):
                 rect = [xmin, xmax, ymin, ymax]
                 rect = [int(num) for num in rect]
                 if xmin == xmax and ymin == ymax:
-                    print('single click')
+                    self.galvo.set_values(xmin, ymin)
                 else:
                     self.control.set_values(*rect)
 
@@ -105,9 +107,12 @@ class MainWindow(wx.Frame):
         self.SetAcceleratorTable(shortcuts)
 
         # sizers
+        self.subsizer = wx.BoxSizer(wx.VERTICAL)
+        self.subsizer.Add(self.galvo, 0, wx.EXPAND)
+        self.subsizer.Add(self.control, 0, wx.EXPAND)
         self.sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer.Add(self.panel, 1, wx.EXPAND)
-        self.sizer.Add(self.control, 0, wx.EXPAND)
+        self.sizer.Add(self.subsizer, 0, wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
