@@ -33,11 +33,26 @@ def yielding_fromiter(gen, result):
 from time import sleep
 import numpy as n
 
-def dumb_gen(X,Y):
+def dumb_gen(X,Y,t):
     for y in Y:
         for x in X:
             sleep(.01)
             yield int(200000 * n.random.random())
+
+from expt import configure_counter, counting
+from expt import do_count, start_count, finish_count
+
+def scan(gen, t=0.1):
+    """threaded version"""
+    p,c = configure_counter(duration=t)
+    with counting(p,c):
+        next(gen)
+        last = do_count(p,c)/t
+        for step in gen:
+            start_count(p, c)
+            yield last
+            last = finish_count(p, c)/t
+        yield last
 
 from monitor import WorkerThread, EVT_RESULT
 
@@ -45,6 +60,8 @@ from monitor import WorkerThread, EVT_RESULT
 from ui import ImagePanel, DragState
 from scan import ScanPanel
 from galvo import DoubleGalvoPanel
+from expt import GalvoPixel
+
 import wx
 
 class MainWindow(wx.Frame):
@@ -52,9 +69,29 @@ class MainWindow(wx.Frame):
     def __init__(self, parent, title):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
+        # galvos
+        self.xgalvo = GalvoPixel("Dev2/ao0", reverse=True)
+        self.ygalvo = GalvoPixel("Dev2/ao1")
+
+        # scan generator
+        #self.datagen = dumb_gen
+
+        def gen2D(X, Y):
+            for y in Y:
+                self.ygalvo.value = y
+                for x in X:
+                    self.xgalvo.value = x
+                    yield
+
+        def datagen(X, Y, t):
+            return scan(gen2D(X, Y), t)
+
+        self.datagen = datagen
+
         #panels
         self.panel = ImagePanel(self)
-        self.galvo = DoubleGalvoPanel(self)
+        self.galvo = DoubleGalvoPanel(self, xcall=self.xgalvo.set_value,
+                                            ycall=self.ygalvo.set_value)
         self.control = ScanPanel(self, self.scangen, abortable=True)
 
         self.control.Bind(EVT_RESULT, self.on_result)
@@ -164,7 +201,7 @@ class MainWindow(wx.Frame):
         self.X = X
         self.Y = Y
 
-        gen = chunk(yielding_fromiter(dumb_gen(X, Y), vector),
+        gen = chunk(yielding_fromiter(self.datagen(X, Y, t), vector),
                 n = vector.shape[-1])
 
         return gen

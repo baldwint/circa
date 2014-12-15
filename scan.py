@@ -88,7 +88,7 @@ class ScanPanel(wx.Panel):
         # selecting another window) AND the value has changed.
         # HOWEVER, on Mac OS X, it seems to be issued twice on losing
         # focus, even when the value has not changed
-        self.increment.Bind(wx.EVT_SPINCTRL, self.update_thing)
+        self.increment.Bind(wx.EVT_SPINCTRL, self.newinc)
         self.exposure.Bind(wx.EVT_SPINCTRLDOUBLE, self.update_thing)
 
         self.summary = wx.StaticText(self, label='',
@@ -192,6 +192,14 @@ class ScanPanel(wx.Panel):
         # http://stackoverflow.com/questions/15965254/what-is-the-correct-way-to-change-statictext-label
         self.summary.SetLabel(label)
         self.sizer.Layout()
+
+    def newinc(self, event):
+        newval = event.GetInt()
+        self.update_thing(None)
+        self.Xmin.SetIncrement(newval)
+        self.Ymin.SetIncrement(newval)
+        self.Xmax.SetIncrement(newval)
+        self.Ymax.SetIncrement(newval)
 
     def on_button(self, event):
         """ respond to button press"""

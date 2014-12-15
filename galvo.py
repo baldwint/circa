@@ -98,8 +98,13 @@ class DoubleGalvoPanel(wx.Panel):
             self.ycall(y)
 
     def set_values(self, x, y):
-        self.X.SetValue(int(x))
-        self.Y.SetValue(int(y))
+        x,y = int(x),int(y)
+        self.X.SetValue(x)
+        self.Y.SetValue(y)
+        if self.xcall is not None:
+            self.xcall(x)
+        if self.ycall is not None:
+            self.ycall(y)
 
 if __name__ == "__main__":
 
