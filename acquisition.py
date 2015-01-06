@@ -54,37 +54,32 @@ def scan(gen, t=0.1):
             last = finish_count(p, c)/t
         yield last
 
+def gen_2D(X, Y, xgalvo, ygalvo):
+    for y in Y:
+        ygalvo.value = y
+        for x in X:
+            xgalvo.value = x
+            yield
+
 from monitor import WorkerThread, EVT_RESULT
 
 
 from ui import ImagePanel, DragState
 from scan import ScanPanel
 from galvo import DoubleGalvoPanel
-from expt import GalvoPixel
-
 import wx
 
-class MainWindow(wx.Frame):
+class AcquisitionWindow(wx.Frame):
 
-    def __init__(self, parent, title):
-        wx.Frame.__init__(self, parent, title=title, size=(500,400))
-
-        # galvos
-        self.xgalvo = GalvoPixel("Dev2/ao0", reverse=True)
-        self.ygalvo = GalvoPixel("Dev2/ao1")
+    def __init__(self, parent, xgalvo, ygalvo):
+        wx.Frame.__init__(self, parent, title='Acquisition', size=(500,400))
 
         # scan generator
-        #self.datagen = dumb_gen
-
-        def gen2D(X, Y):
-            for y in Y:
-                self.ygalvo.value = y
-                for x in X:
-                    self.xgalvo.value = x
-                    yield
+        self.xgalvo = xgalvo
+        self.ygalvo = ygalvo
 
         def datagen(X, Y, t):
-            return scan(gen2D(X, Y), t)
+            return scan(gen_2D(X, Y, self.xgalvo, self.ygalvo), t)
 
         self.datagen = datagen
 
@@ -211,7 +206,13 @@ class MainWindow(wx.Frame):
 
 
 if __name__ == "__main__":
+    # galvos
+    from expt import GalvoPixel
+    xgalvo = GalvoPixel("Dev2/ao0", reverse=True)
+    ygalvo = GalvoPixel("Dev2/ao1")
+
+    # gui app
     app = wx.App(False)
-    frame = MainWindow(None, 'Hello World')
+    frame = AcquisitionWindow(None, xgalvo, ygalvo)
     frame.Show(True)
     app.MainLoop()
