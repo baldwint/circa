@@ -205,7 +205,7 @@ class AcquisitionWindow(wx.Frame):
         self.panel.update_data(self.vector)
 
 
-if __name__ == "__main__":
+def main():
     # galvos
     from expt import GalvoPixel
     xgalvo = GalvoPixel("Dev2/ao0", reverse=True)
@@ -216,3 +216,6 @@ if __name__ == "__main__":
     frame = AcquisitionWindow(None, xgalvo, ygalvo)
     frame.Show(True)
     app.MainLoop()
+
+if __name__ == "__main__":
+    main()
