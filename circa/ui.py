@@ -60,7 +60,7 @@ class ImagePanel(wx.Panel):
 
         wx.Panel.__init__(self, parent)
 
-        vector = n.ndarray((2048, 2048))
+        vector = n.ndarray((4096, 4096))
         vector[:] = n.nan
 
         fig = Figure()
