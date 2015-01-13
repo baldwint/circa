@@ -45,7 +45,7 @@ def gen_2D(X, Y, xgalvo, ygalvo):
             xgalvo.value = x
             yield
 
-from monitor import WorkerThread, EVT_RESULT
+from monitor import WorkerThread, EVT_RESULT, EVT_FINISHED
 
 from ui import ImagePanel, DragState
 from scan import ScanPanel
@@ -71,6 +71,9 @@ class AcquisitionWindow(wx.Frame):
 
         self.datagen = datagen
 
+        # statusbar
+        self.statusbar = self.CreateStatusBar()
+
         #panels
         self.panel = ImagePanel(self)
         self.galvo = DoubleGalvoPanel(self, xcall=self.xgalvo.set_value,
@@ -78,6 +81,7 @@ class AcquisitionWindow(wx.Frame):
         self.control = ScanPanel(self, self.scangen, abortable=True)
 
         self.control.Bind(EVT_RESULT, self.on_result)
+        self.control.Bind(EVT_FINISHED, self.on_scan_finished)
 
         # rect dragging
         def resetbounds(state):
@@ -159,6 +163,7 @@ class AcquisitionWindow(wx.Frame):
             # update image, and parameters on scan control
             self.panel.update_image(self.vector, self.X, self.Y)
             self.control.set_values_from_image(self.panel.im)
+            self.statusbar.SetStatusText('Loaded %s' % path)
 
     def OnSave(self, e):
         dlg = wx.FileDialog(self,
@@ -171,6 +176,7 @@ class AcquisitionWindow(wx.Frame):
             self.save_to_dir = dlg.GetDirectory()
             path = dlg.GetPath()
             n.savez(path, image=self.vector, X=self.X, Y=self.Y)
+            self.statusbar.SetStatusText('Saved %s' % path)
 
     def scangen(self, X, Y, t):
 
@@ -191,6 +197,10 @@ class AcquisitionWindow(wx.Frame):
 
     def on_result(self, event):
         self.panel.update_data(self.vector)
+
+    def on_scan_finished(self, event):
+        self.statusbar.SetStatusText('finished scan')
+        event.Skip() # let the panel also handle
 
 
 class FakeGalvoPixel(object):
