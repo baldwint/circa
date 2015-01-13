@@ -33,26 +33,10 @@ def yielding_fromiter(gen, result):
 from time import sleep
 import numpy as n
 
-def dumb_gen(X,Y,t):
-    for y in Y:
-        for x in X:
-            sleep(.01)
-            yield int(200000 * n.random.random())
-
-from expt import configure_counter, counting
-from expt import do_count, start_count, finish_count
-
-def scan(gen, t=0.1):
-    """threaded version"""
-    p,c = configure_counter(duration=t)
-    with counting(p,c):
-        next(gen)
-        last = do_count(p,c)/t
-        for step in gen:
-            start_count(p, c)
-            yield last
-            last = finish_count(p, c)/t
-        yield last
+def fake_scan(gen, t=0.1):
+    for step in gen:
+        sleep(t)
+        yield int(200000 * n.random.random())
 
 def gen_2D(X, Y, xgalvo, ygalvo):
     for y in Y:
@@ -62,7 +46,6 @@ def gen_2D(X, Y, xgalvo, ygalvo):
             yield
 
 from monitor import WorkerThread, EVT_RESULT
-
 
 from ui import ImagePanel, DragState
 from scan import ScanPanel
@@ -74,9 +57,14 @@ class AcquisitionWindow(wx.Frame):
     def __init__(self, parent, xgalvo, ygalvo):
         wx.Frame.__init__(self, parent, title='Acquisition', size=(500,400))
 
-        # scan generator
         self.xgalvo = xgalvo
         self.ygalvo = ygalvo
+
+        # scan generator
+        try:
+            from expt import scan
+        except NotImplementedError:
+            scan = fake_scan
 
         def datagen(X, Y, t):
             return scan(gen_2D(X, Y, self.xgalvo, self.ygalvo), t)
@@ -205,9 +193,32 @@ class AcquisitionWindow(wx.Frame):
         self.panel.update_data(self.vector)
 
 
+class FakeGalvoPixel(object):
+    """ encapsulates a Galvonometer at a given DAC channel"""
+    def __init__(self, name="Dev2/ao0", bits=12, reverse=False):
+        self.name = name
+        self._value = None
+        self.max_value = 2**bits
+        self.factor = -1 if reverse else 1
+
+    def get_value(self):
+        return self._value
+
+    def set_value(self, val):
+        realval = (self.factor * int(val)) % self.max_value
+        #set_DAC_bits(realval, self.name)
+        self._value = int(val) % self.max_value
+
+    value = property(get_value, set_value)
+
+
 def main():
     # galvos
-    from expt import GalvoPixel
+    try:
+        from expt import GalvoPixel
+    except NotImplementedError:
+        GalvoPixel = FakeGalvoPixel
+
     xgalvo = GalvoPixel("Dev2/ao0", reverse=True)
     ygalvo = GalvoPixel("Dev2/ao1")
 

@@ -76,6 +76,19 @@ def counting(pulse, ctr):
             print "no need to stop timer"
         raise
 
+def scan(gen, t=0.1):
+    """threaded version"""
+    p,c = configure_counter(duration=t)
+    with counting(p,c):
+        next(gen)
+        last = do_count(p,c)/t
+        for step in gen:
+            start_count(p, c)
+            yield last
+            last = finish_count(p, c)/t
+        yield last
+
+
 # ---------------
 # SCANNING MIRROR
 # ---------------
