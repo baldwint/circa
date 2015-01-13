@@ -69,6 +69,9 @@ class ImagePanel(wx.Panel):
 
         self.cbar = fig.colorbar(self.im, aspect=8)
 
+        # whether the vertical scale is locked
+        self.scale_locked = False
+
         self.canvas = FigureCanvasWxAgg(self, -1, fig)
         self.canvas.draw()
 
@@ -86,14 +89,17 @@ class ImagePanel(wx.Panel):
                 if scaling == 1:
                     # restore zoom
                     im.autoscale()
+                    self.scale_locked = False
                 elif scaling > 1:
                     # adjust vmax
                     vmin, vmax = im.get_clim()
                     im.set_clim(vmax = vmin + (vmax - vmin)/scaling)
+                    self.scale_locked = True
                 elif scaling < 1:
                     # adjust vmin
                     vmin, vmax = im.get_clim()
                     im.set_clim(vmin = vmax - (vmax - vmin)*scaling)
+                    self.scale_locked = True
                 self.canvas.draw()
 
         self.ds = DragState(relimcolor)
@@ -125,7 +131,8 @@ class ImagePanel(wx.Panel):
     def update_data(self, newdata):
         """ The image contents have changed, but not the bounds. """
         self.im.set_data(newdata)
-        self.im.autoscale()
+        if not self.scale_locked:
+            self.im.autoscale()
         self.cbar.on_mappable_changed(self.im)
         self.canvas.draw()
 
