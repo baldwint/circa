@@ -15,8 +15,6 @@ def chunk(gen, n=1):
             next(gen)
         yield next(gen)
 
-import itertools
-
 def yielding_fromiter(gen, result):
     """
     fills the ND array ``result`` with values from the ``gen`` iterator,
@@ -31,6 +29,7 @@ def yielding_fromiter(gen, result):
         yield
 
 from time import sleep
+from datetime import timedelta
 import numpy as n
 
 def fake_scan(gen, t=0.1):
@@ -206,7 +205,8 @@ class AcquisitionWindow(wx.Frame):
         self.panel.update_data(self.vector)
 
     def on_scan_finished(self, event):
-        self.statusbar.SetStatusText('finished scan')
+        elapsed = timedelta(seconds=int(event.elapsed))
+        self.statusbar.SetStatusText('Scan completed in %s' % str(elapsed))
         event.Skip() # let the panel also handle
 
 

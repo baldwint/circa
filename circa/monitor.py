@@ -6,7 +6,7 @@ import os
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 import numpy as n
-from time import sleep
+from time import sleep, time
 import threading
 from collections import deque
 
@@ -47,6 +47,7 @@ class WorkerThread(threading.Thread):
     def run(self):
         """Run Worker Thread."""
         # This is the code executing in the new thread.
+        start = time()
         # peek at the abort variable once in a while to see if we should stop
         for data in self.gen:
             if self._want_abort:
@@ -54,7 +55,8 @@ class WorkerThread(threading.Thread):
             # Send data to the parent thread
             wx.PostEvent(self._notify_window, ResultEvent(data=data))
         # Signal that we are all done
-        wx.PostEvent(self._notify_window, FinishedEvent())
+        elapsed = time() - start
+        wx.PostEvent(self._notify_window, FinishedEvent(elapsed=elapsed))
 
     def abort(self):
         """abort worker thread."""
