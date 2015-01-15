@@ -175,7 +175,11 @@ class AcquisitionWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             self.save_to_dir = dlg.GetDirectory()
             path = dlg.GetPath()
-            n.savez(path, image=self.vector, X=self.X, Y=self.Y)
+            n.savez(path,
+                    image=self.vector,
+                    X=self.X,
+                    Y=self.Y,
+                    t=self.t)
             self.statusbar.SetStatusText('Saved %s' % path)
 
     def scangen(self, X, Y, t):
@@ -189,6 +193,7 @@ class AcquisitionWindow(wx.Frame):
         self.vector = vector
         self.X = X
         self.Y = Y
+        self.t = t
 
         gen = chunk(yielding_fromiter(self.datagen(X, Y, t), vector),
                 n = vector.shape[-1])
