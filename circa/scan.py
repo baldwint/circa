@@ -61,15 +61,15 @@ class ScanPanel(wx.Panel):
         self.abortable = abortable
         self.Bind(EVT_FINISHED, self.on_scan_finished)
 
-        self.Xmin = wx.SpinCtrlDouble(self, value='1800',
-                                   min=1, max=4095)
-        self.Xmax = wx.SpinCtrlDouble(self, value='2200',
-                                   min=1, max=4095)
+        self.Xmin = wx.SpinCtrlDouble(self, value='0',
+                                   min=0, max=4095)
+        self.Xmax = wx.SpinCtrlDouble(self, value='4096',
+                                   min=1, max=4096)
 
-        self.Ymin = wx.SpinCtrlDouble(self, value='1800',
-                                   min=1, max=4095)
-        self.Ymax = wx.SpinCtrlDouble(self, value='2300',
-                                   min=1, max=4095)
+        self.Ymin = wx.SpinCtrlDouble(self, value='0',
+                                   min=0, max=4095)
+        self.Ymax = wx.SpinCtrlDouble(self, value='4096',
+                                   min=1, max=4096)
 
         self.increment = wx.SpinCtrl(self, value='10',
                 min=1, max=100, style=wx.SP_ARROW_KEYS)

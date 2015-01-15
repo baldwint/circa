@@ -34,12 +34,12 @@ class DoubleGalvoPanel(wx.Panel):
         self.Xlabel =  wx.StaticText(self, label='X',
                                      style=wx.ALIGN_RIGHT)
         self.X = wx.SpinCtrlDouble(self, value='2048',
-                                   min=1, max=4095)
+                                   min=0, max=4095)
 
         self.Ylabel =  wx.StaticText(self, label='Y',
                                      style=wx.ALIGN_RIGHT)
         self.Y = wx.SpinCtrlDouble(self, value='2048',
-                                   min=1, max=4095)
+                                   min=0, max=4095)
 
         self.inclabel = wx.StaticText(self, label='increment',
                                       style=wx.ALIGN_RIGHT)
