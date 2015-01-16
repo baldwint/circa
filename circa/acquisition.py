@@ -159,7 +159,7 @@ class AcquisitionWindow(wx.Frame):
                 self.vector = npz['image']
                 self.X = npz['X']
                 self.Y = npz['Y']
-                self.t = npz.get('t')
+                self.t = dict(npz).get('t')
             # update image, and parameters on scan control
             self.panel.update_image(self.vector, self.X, self.Y)
             self.control.set_values(t=self.t)  # does nothing if None
