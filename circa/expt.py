@@ -97,29 +97,19 @@ def set_DAC_bits(num, channel_name="Dev2/ao0"):
     """
     Set the DAC bits to the given value (provide an integer between 0 and 2**12)
     """
-    ao = daq.Task()
-    ao.CreateAOVoltageChan(
-        channel_name, "",             # physical channel, name to assign
-        0., 5., daq.DAQmx_Val_Volts,  # max, min, in units: Volts
-        None)                         # not using custom scale
-
-    # no timing (seems to be 1ms per sample)
-
-    written = int32()
-    samples = int16(num)
-    ao.WriteRaw(
-        1, True, 10.0,            # no of samples, autostart, timeout
-        byref(samples),           # data to actually write!
-        byref(written),           # output: the number of things written
-        None)                     # reserved
-
-    # verify that we wrote all the samples
-    assert written.value == 1
-
+    dc = DACChannel(channel_name)
+    dc.set_value(num)
 
 class DACChannel(object):
     """ encapsulates a DAC channel"""
     def __init__(self, name="Dev2/ao0"):
+        self.ao = daq.Task()
+        self.ao.CreateAOVoltageChan(
+            name, "",                     # physical channel, name to assign
+            0., 5., daq.DAQmx_Val_Volts,  # max, min, in units: Volts
+            None)                         # not using custom scale
+
+        # no timing (seems to be 1ms per sample)
         self.name = name
         self._value = None
 
@@ -127,7 +117,17 @@ class DACChannel(object):
         return self._value
 
     def set_value(self, val):
-        set_DAC_bits(int(val), self.name)
+        written = int32()
+        samples = int16(val)
+        self.ao.WriteRaw(
+            1, True, 10.0,            # no of samples, autostart, timeout
+            byref(samples),           # data to actually write!
+            byref(written),           # output: the number of things written
+            None)                     # reserved
+
+        # verify that we wrote all the samples
+        assert written.value == 1
+
         self._value = int(val)
 
     value = property(get_value, set_value)
@@ -136,7 +136,7 @@ class DACChannel(object):
 class GalvoPixel(object):
     """ encapsulates a Galvonometer at a given DAC channel"""
     def __init__(self, name="Dev2/ao0", bits=12, reverse=False):
-        self.name = name
+        self.dc = DACChannel(name)
         self._value = None
         self.max_value = 2**bits
         self.factor = -1 if reverse else 1
@@ -146,7 +146,7 @@ class GalvoPixel(object):
 
     def set_value(self, val):
         realval = (self.factor * int(val)) % self.max_value
-        set_DAC_bits(realval, self.name)
+        self.dc.set_value(realval)
         self._value = int(val) % self.max_value
 
     value = property(get_value, set_value)
