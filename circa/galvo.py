@@ -27,19 +27,21 @@ class GalvoWindow(wx.Frame):
 
 class DoubleGalvoPanel(wx.Panel):
 
-    def __init__(self, parent, xcall=None, ycall=None):
+    def __init__(self, parent, xcall=None, ycall=None, nvals=4096):
 
         wx.Panel.__init__(self, parent)
 
+        initval = nvals//2
+
         self.Xlabel =  wx.StaticText(self, label='X',
                                      style=wx.ALIGN_RIGHT)
-        self.X = wx.SpinCtrlDouble(self, value='2048',
-                                   min=0, max=4095)
+        self.X = wx.SpinCtrlDouble(self, value=str(initval),
+                                   min=0, max=nvals-1)
 
         self.Ylabel =  wx.StaticText(self, label='Y',
                                      style=wx.ALIGN_RIGHT)
-        self.Y = wx.SpinCtrlDouble(self, value='2048',
-                                   min=0, max=4095)
+        self.Y = wx.SpinCtrlDouble(self, value=str(initval),
+                                   min=0, max=nvals-1)
 
         self.inclabel = wx.StaticText(self, label='increment',
                                       style=wx.ALIGN_RIGHT)

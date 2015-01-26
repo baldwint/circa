@@ -56,11 +56,16 @@ from imaging import show_image, add_hist_to_cbar
 
 class ImagePanel(wx.Panel):
 
-    def __init__(self, parent):
+    def __init__(self, parent, size=(4096, 4096)):
+        """
+        Create a new image panel with an (initially) blank image.
+
+        Set size of the blank image with 'size'
+        """
 
         wx.Panel.__init__(self, parent)
 
-        vector = n.ndarray((4096, 4096))
+        vector = n.ndarray(size)
         vector[:] = n.nan
 
         fig = Figure()

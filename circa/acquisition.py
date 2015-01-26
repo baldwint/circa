@@ -31,11 +31,15 @@ class AcquisitionWindow(wx.Frame):
         # statusbar
         self.statusbar = self.CreateStatusBar()
 
+        nvals=4096
+
         #panels
-        self.panel = ImagePanel(self)
+        self.panel = ImagePanel(self, size=(nvals,nvals))
         self.galvo = DoubleGalvoPanel(self, xcall=self.xgalvo.set_value,
-                                            ycall=self.ygalvo.set_value)
-        self.control = ScanPanel(self, self.scangen, abortable=True)
+                                            ycall=self.ygalvo.set_value,
+                                            nvals=nvals)
+        self.control = ScanPanel(self, self.scangen,
+                                 abortable=True, nvals=nvals)
 
         self.control.Bind(EVT_RESULT, self.on_result)
         self.control.Bind(EVT_FINISHED, self.on_scan_finished)

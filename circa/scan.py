@@ -43,7 +43,7 @@ from monitor import WorkerThread, EVT_FINISHED
 
 class ScanPanel(wx.Panel):
 
-    def __init__(self, parent, scanfunc, abortable=False):
+    def __init__(self, parent, scanfunc, abortable=False, nvals=4096):
         """
         scanfunc is an un-instantiated generator; it takes X, Y, t as
         the arguments and then does whatever. This panel will
@@ -52,6 +52,12 @@ class ScanPanel(wx.Panel):
 
         if 'abortable' is True, the button will allow the scan to be
         terminated prematurely
+
+        'nvals' is the number of values taken on by X and Y, e.g. 4096
+        for a 12-bit DAC. Meaningful values will be labeled 0 through
+        nvals-1. Note that since upper bounds are not included in the
+        scan, the range of this control will be labeled 1 through
+        nvals.
 
         """
 
@@ -62,14 +68,14 @@ class ScanPanel(wx.Panel):
         self.Bind(EVT_FINISHED, self.on_scan_finished)
 
         self.Xmin = wx.SpinCtrlDouble(self, value='0',
-                                   min=0, max=4095)
-        self.Xmax = wx.SpinCtrlDouble(self, value='4096',
-                                   min=1, max=4096)
+                                   min=0, max=nvals-1)
+        self.Xmax = wx.SpinCtrlDouble(self, value=str(nvals),
+                                   min=1, max=nvals)
 
         self.Ymin = wx.SpinCtrlDouble(self, value='0',
-                                   min=0, max=4095)
-        self.Ymax = wx.SpinCtrlDouble(self, value='4096',
-                                   min=1, max=4096)
+                                   min=0, max=nvals-1)
+        self.Ymax = wx.SpinCtrlDouble(self, value=str(nvals),
+                                   min=1, max=nvals)
 
         self.increment = wx.SpinCtrl(self, value='10',
                 min=1, max=100, style=wx.SP_ARROW_KEYS)
