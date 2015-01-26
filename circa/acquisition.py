@@ -53,22 +53,13 @@ import wx
 
 class AcquisitionWindow(wx.Frame):
 
-    def __init__(self, parent, xgalvo, ygalvo):
+    def __init__(self, parent, xgalvo, ygalvo, make_data_generator):
         wx.Frame.__init__(self, parent, title='Acquisition', size=(500,400))
 
         self.xgalvo = xgalvo
         self.ygalvo = ygalvo
 
-        # scan generator
-        try:
-            from expt import scan
-        except NotImplementedError:
-            scan = fake_scan
-
-        def datagen(X, Y, t):
-            return scan(gen_2D(X, Y, self.xgalvo, self.ygalvo), t)
-
-        self.datagen = datagen
+        self.make_data_generator = make_data_generator
 
         # statusbar
         self.statusbar = self.CreateStatusBar()
@@ -196,8 +187,7 @@ class AcquisitionWindow(wx.Frame):
         self.Y = Y
         self.t = t
 
-        gen = chunk(yielding_fromiter(self.datagen(X, Y, t), vector),
-                n = vector.shape[-1])
+        gen = self.make_data_generator(X, Y, t, vector)
 
         return gen
 
@@ -208,6 +198,37 @@ class AcquisitionWindow(wx.Frame):
         elapsed = timedelta(seconds=int(event.elapsed))
         self.statusbar.SetStatusText('Scan completed in %s' % str(elapsed))
         event.Skip() # let the panel also handle
+
+
+def make_generator_factory(xgalvo, ygalvo):
+    """
+    given two galvonometer objects (xgalvo, ygalvo), return a function
+    that would produce data generators for 2D scans using those two
+    galvonometers.
+    """
+
+    def make_data_generator(X, Y, t, vector):
+        """
+        Given the scan parameters (X, Y, t) and an array in which to
+        put the results of the scan (vector), construct a generator
+        that would perform the scan.
+        """
+
+        # scan generator
+        try:
+            from expt import scan
+        except NotImplementedError:
+            scan = fake_scan
+
+        def datagen(X, Y, t):
+            return scan(gen_2D(X, Y, xgalvo, ygalvo), t)
+
+        gen = chunk(yielding_fromiter(datagen(X, Y, t), vector),
+                n = vector.shape[-1])
+
+        return gen
+
+    return make_data_generator
 
 
 class FakeGalvoPixel(object):
@@ -239,9 +260,11 @@ def main():
     xgalvo = GalvoPixel("Dev2/ao0", reverse=True)
     ygalvo = GalvoPixel("Dev2/ao1")
 
+    make_data_generator = make_generator_factory(xgalvo,ygalvo)
+
     # gui app
     app = wx.App(False)
-    frame = AcquisitionWindow(None, xgalvo, ygalvo)
+    frame = AcquisitionWindow(None, xgalvo, ygalvo, make_data_generator)
     frame.Show(True)
     app.MainLoop()
 
