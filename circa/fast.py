@@ -294,11 +294,7 @@ def make_generator_factory(xgalvo, ygalvo):
     # don't do anything with the galvos, they're fake
 
     def make_data_generator(X, Y, t, vector):
-
-        def datagen(X, Y, t):
-            return update_result(generate_frames(X, Y, t), vector)
-
-        return datagen
+        return update_result(generate_frames(X, Y, t), vector)
 
     return make_data_generator
 
