@@ -269,3 +269,54 @@ def do_everything(X, Y, t=.01):
 #
 #result = do_everything(X,Y, t=.005)
 #density_plot(result, X, Y)
+
+# generators for the GUI
+
+def generate_frames(X, Y, t=.01):
+    naqs = make_and_load_waveforms(X, Y, t)
+    outshape = Y.shape + X.shape
+    timeout = 5. + naqs * t
+    while True:
+        result = many_samples(naqs, timeout=timeout)
+        yield decode_image(result, shape=outshape)
+
+def update_result(gen, resultarray):
+    """
+    plays the same role as yielding_fromiter,
+    but expects gen to yield the whole result each time
+
+    """
+    for result in gen:
+        resultarray[:] = result
+        yield
+
+def make_generator_factory(xgalvo, ygalvo):
+    # don't do anything with the galvos, they're fake
+
+    def make_data_generator(X, Y, t, vector):
+
+        def datagen(X, Y, t):
+            return update_result(generate_frames(X, Y, t), vector)
+
+        return datagen
+
+    return make_data_generator
+
+def main():
+    import wx
+    from acquisition import FakeGalvoPixel, AcquisitionWindow
+
+    xgalvo = FakeGalvoPixel("Dev2/ao0", reverse=True)
+    ygalvo = FakeGalvoPixel("Dev2/ao1")
+
+    make_data_generator = make_generator_factory(xgalvo,ygalvo)
+
+    # gui app
+    app = wx.App(False)
+    frame = AcquisitionWindow(None, xgalvo, ygalvo,
+                              make_data_generator, nvals=16383)
+    frame.Show(True)
+    app.MainLoop()
+
+if __name__ == "__main__":
+    main()

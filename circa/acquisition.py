@@ -20,7 +20,8 @@ import wx
 
 class AcquisitionWindow(wx.Frame):
 
-    def __init__(self, parent, xgalvo, ygalvo, make_data_generator):
+    def __init__(self, parent, xgalvo, ygalvo,
+                 make_data_generator, nvals=4096):
         wx.Frame.__init__(self, parent, title='Acquisition', size=(500,400))
 
         self.xgalvo = xgalvo
@@ -30,8 +31,6 @@ class AcquisitionWindow(wx.Frame):
 
         # statusbar
         self.statusbar = self.CreateStatusBar()
-
-        nvals=4096
 
         #panels
         self.panel = ImagePanel(self, size=(nvals,nvals))
