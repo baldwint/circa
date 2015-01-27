@@ -144,7 +144,7 @@ class ImagePanel(wx.Panel):
         self.im.set_data(newdata)
         if not self.scale_locked:
             self.im.autoscale()
-        self.cbar.on_mappable_changed(self.im)
+        self.im.changed()
         self.canvas.draw()
 
 class DragState(object):
