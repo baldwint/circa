@@ -7,6 +7,8 @@ from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
 import numpy as n
 
+from wanglib.pylab_extensions.density import density_plot
+
 class MainWindow(wx.Frame):
 
     def __init__(self, parent, title):
@@ -65,12 +67,16 @@ class ImagePanel(wx.Panel):
 
         wx.Panel.__init__(self, parent)
 
-        vector = n.ndarray(size)
+        vector = n.ndarray((2,2))
         vector[:] = n.nan
 
         fig = Figure()
         self.ax = fig.add_subplot(111)
-        self.im = self.ax.imshow(vector)
+        #self.im = self.ax.imshow(vector)
+        self.im = density_plot(vector,
+                               n.array((0,size[0]/2)),
+                               n.array((0,size[1]/2)),
+                               ax=self.ax)
 
         self.cbar = fig.colorbar(self.im, aspect=8)
 
