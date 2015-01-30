@@ -278,7 +278,7 @@ def generate_frames(X, Y, t=.01):
     timeout = 5. + naqs * t
     while True:
         result = many_samples(naqs, timeout=timeout)
-        yield decode_image(result, shape=outshape)
+        yield decode_image(result, shape=outshape)/t
 
 def update_result(gen, resultarray):
     """
