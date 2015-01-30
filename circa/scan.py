@@ -78,7 +78,7 @@ class ScanPanel(wx.Panel):
                                    min=1, max=nvals)
 
         self.increment = wx.SpinCtrl(self, value='10',
-                min=1, max=100, style=wx.SP_ARROW_KEYS)
+                min=1, max=nvals/2, style=wx.SP_ARROW_KEYS)
         self.exposure = wx.SpinCtrlDouble(self, value='.01',
                 min=0., max=10, inc=.001, style=wx.SP_ARROW_KEYS)
 
