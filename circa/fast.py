@@ -138,6 +138,12 @@ class Arb(object):
         block = encode_array(array)
         self.bus.write_raw(b'data:data emem,' + block)
 
+    def get_point(self, index):
+        self.bus.write('data:value? emem,%d' % index)
+
+    def set_point(self, index, value):
+        self.bus.write('data:value emem,%d,%d' % (index, value))
+
     def copy_to(self, register):
         #register is either USER1, USER2, etc.
         self.bus.write('data:copy %s,emem' % register)
@@ -159,9 +165,9 @@ rf_afg.ask('*IDN?')
 det_arb = Arb(det_afg)
 rf_arb = Arb(rf_afg)
 
-x_ch = AFG_channel(det_afg, 1)
+s_ch = AFG_channel(det_afg, 1)
 y_ch = AFG_channel(det_afg, 2)
-s_ch = AFG_channel(rf_afg)
+x_ch = AFG_channel(rf_afg)
 
 def make_and_load_waveforms(X, Y, t=.01):
     X,Y,s = make_waveforms(X, Y)
@@ -171,24 +177,34 @@ def make_and_load_waveforms(X, Y, t=.01):
 
     # load into the two AFGs
     det_arb.npts = npts
-    det_arb.set_data(X)
-    det_arb.copy_to('user3') # ch1
-    det_arb.set_data(Y)
-    #det_arb.copy_to('user2') # ch2
+    det_arb.set_data(s)
+    det_arb.copy_to('user3') # ch1 : user3
+    det_arb.set_data(Y)      # ch2 : emem
     rf_arb.npts = npts
-    rf_arb.set_data(s)
-    #rf_arb.copy_to('user2') # only channel
+    rf_arb.set_data(X)
 
     # configure AFGs
-    x_ch.set_mode('user3')
+    s_ch.set_mode('user3')
     y_ch.set_mode('emem')
-    s_ch.set_mode('emem')
+    x_ch.set_mode('emem')
 
     total_time = naqs * t
     for ch in (x_ch, y_ch, s_ch):
         ch.freq = 1. / total_time
 
     return naqs
+
+class AFGasDAC(object):
+
+    def __init__(self, arb):
+        self.arb = arb
+
+    def get_value(self):
+        return self.arb.get_point(1)
+
+    def set_value(self, value):
+        return self.arb.set_point(1, value)
+
 
 from PyDAQmx import *
 
@@ -302,8 +318,10 @@ def main():
     import wx
     from acquisition import FakeGalvoPixel, AcquisitionWindow
 
-    xgalvo = FakeGalvoPixel("Dev2/ao0", reverse=True)
-    ygalvo = FakeGalvoPixel("Dev2/ao1")
+    #xgalvo = FakeGalvoPixel("Dev2/ao0", reverse=True)
+    #ygalvo = FakeGalvoPixel("Dev2/ao1")
+    ygalvo = AFGasDAC(det_arb)
+    xgalvo = AFGasDAC(rf_arb)
 
     make_data_generator = make_generator_factory(xgalvo,ygalvo)
 
