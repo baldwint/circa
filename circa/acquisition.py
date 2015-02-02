@@ -21,7 +21,7 @@ import wx
 class AcquisitionWindow(wx.Frame):
 
     def __init__(self, parent, xgalvo, ygalvo,
-                 make_data_generator, nvals=4096):
+                 make_data_generator, nvals=4096, repeat=None):
         wx.Frame.__init__(self, parent, title='Acquisition', size=(500,400))
 
         self.xgalvo = xgalvo
@@ -38,7 +38,8 @@ class AcquisitionWindow(wx.Frame):
                                             ycall=self.ygalvo.set_value,
                                             nvals=nvals)
         self.control = ScanPanel(self, self.scangen,
-                                 abortable=True, nvals=nvals)
+                                 abortable=True, nvals=nvals,
+                                 repeat=repeat)
 
         self.control.Bind(EVT_RESULT, self.on_result)
         self.control.Bind(EVT_FINISHED, self.on_scan_finished)
@@ -144,7 +145,7 @@ class AcquisitionWindow(wx.Frame):
                     t=self.t)
             self.statusbar.SetStatusText('Saved %s' % path)
 
-    def scangen(self, X, Y, t):
+    def scangen(self, X, Y, t, **kwargs):
 
         vector = n.ndarray(Y.shape + X.shape)
         vector[:] = n.nan
@@ -157,7 +158,7 @@ class AcquisitionWindow(wx.Frame):
         self.Y = Y
         self.t = t
 
-        gen = self.make_data_generator(X, Y, t, vector)
+        gen = self.make_data_generator(X, Y, t, vector, **kwargs)
 
         return gen
 

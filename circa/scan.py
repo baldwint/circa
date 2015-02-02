@@ -9,7 +9,7 @@ import numpy as n
 class MainWindow(wx.Frame):
 
     def __init__(self, parent, title, *args, **kwargs):
-        wx.Frame.__init__(self, parent, title=title, size=(400, 200))
+        wx.Frame.__init__(self, parent, title=title, size=(400, 300))
 
         self.panel = ScanPanel(self, *args, **kwargs)
 
@@ -43,7 +43,10 @@ from monitor import WorkerThread, EVT_FINISHED
 
 class ScanPanel(wx.Panel):
 
-    def __init__(self, parent, scanfunc, abortable=False, nvals=4096):
+    def __init__(self, parent, scanfunc,
+                 abortable=False,
+                 nvals=4096,
+                 repeat=None):
         """
         scanfunc is an un-instantiated generator; it takes X, Y, t as
         the arguments and then does whatever. This panel will
@@ -52,6 +55,10 @@ class ScanPanel(wx.Panel):
 
         if 'abortable' is True, the button will allow the scan to be
         terminated prematurely
+
+        if 'repeat' is not None, there will be a checkbox to
+        enable recirculating scans. The truth value determines the
+        default. This is passed as a keyword argument to scanfunc
 
         'nvals' is the number of values taken on by X and Y, e.g. 4096
         for a 12-bit DAC. Meaningful values will be labeled 0 through
@@ -81,6 +88,12 @@ class ScanPanel(wx.Panel):
                 min=1, max=nvals/2, style=wx.SP_ARROW_KEYS)
         self.exposure = wx.SpinCtrlDouble(self, value='.01',
                 min=0., max=10, inc=.001, style=wx.SP_ARROW_KEYS)
+
+        self.repeat = wx.CheckBox(self)
+        if repeat is None:
+            self.repeat.Disable()
+        else:
+            self.repeat.SetValue(bool(repeat))
 
         self.Xmin.Bind(wx.EVT_SPINCTRLDOUBLE, self.update_thing)
         self.Xmax.Bind(wx.EVT_SPINCTRLDOUBLE, self.update_thing)
@@ -133,8 +146,14 @@ class ScanPanel(wx.Panel):
                        flag=wx.EXPAND, pos=(2,2))
         self.sizer.Add(self.exposure, flag=wx.EXPAND, pos=(2,3))
 
+        self.sizer.Add(wx.StaticText(self, label='repeat',
+                                     style=wx.ALIGN_RIGHT),
+                       flag=wx.EXPAND, pos=(3,0))
+        self.sizer.Add(self.repeat, flag=wx.EXPAND,
+                pos=(3,1))
+
         self.sizer.Add(self.summary, flag=wx.EXPAND,
-                pos=(3,0), span=(1,4))
+                pos=(3,2), span=(1,2))
         self.sizer.Add(self.button, flag=wx.EXPAND,
                 pos=(4,0), span=(1,4))
 
@@ -218,7 +237,10 @@ class ScanPanel(wx.Panel):
         """ respond to button press"""
         if not self.scanning:
             X, Y, t = self.get_arrays()
-            self.start_scan(X, Y, t)
+            kwargs = {}
+            if self.repeat.IsEnabled():
+                kwargs['repeat'] = self.repeat.GetValue()
+            self.start_scan(X, Y, t, **kwargs)
             self.scanning = True
             if not self.abortable:
                 self.button.Disable()
@@ -232,8 +254,8 @@ class ScanPanel(wx.Panel):
         self.button.SetLabel('Start Scan')
         self.button.Enable()
 
-    def start_scan(self, X, Y, t):
-        scangen = self.scanfunc(X, Y, t)
+    def start_scan(self, X, Y, t, **kwargs):
+        scangen = self.scanfunc(X, Y, t, **kwargs)
         self.worker = WorkerThread(self, scangen)
         self.worker.start()
 

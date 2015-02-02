@@ -288,7 +288,7 @@ def do_everything(X, Y, t=.01):
 
 # generators for the GUI
 
-def generate_frames(X, Y, t=.01):
+def generate_frames(X, Y, t=.01, repeat=True):
     naqs = make_and_load_waveforms(X, Y, t)
     outshape = Y.shape + X.shape
     timeout = 5. + naqs * t
@@ -299,6 +299,8 @@ def generate_frames(X, Y, t=.01):
             print(e)
             raise StopIteration
         yield decode_image(result, shape=outshape)/t
+        if not repeat:
+            break
 
 def update_result(gen, resultarray):
     """
@@ -313,8 +315,8 @@ def update_result(gen, resultarray):
 def make_generator_factory(xgalvo, ygalvo):
     # don't do anything with the galvos, they're fake
 
-    def make_data_generator(X, Y, t, vector):
-        return update_result(generate_frames(X, Y, t), vector)
+    def make_data_generator(X, Y, t, vector, repeat=True):
+        return update_result(generate_frames(X, Y, t, repeat=repeat), vector)
 
     return make_data_generator
 
@@ -332,7 +334,8 @@ def main():
     # gui app
     app = wx.App(False)
     frame = AcquisitionWindow(None, xgalvo, ygalvo,
-                              make_data_generator, nvals=16383)
+                              make_data_generator, nvals=16383,
+                              repeat=True)
     frame.Show(True)
     app.MainLoop()
 
