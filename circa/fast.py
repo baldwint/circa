@@ -195,7 +195,7 @@ from PyDAQmx import *
 def make_pulse(duration=.1):
     pulse = Task()
     pulse.CreateCOPulseChanTime(
-        "Dev1/ctr1", "",         # physical channel, name to assign
+        "Dev1/ctr2", "",         # physical channel, name to assign
         DAQmx_Val_Seconds,       # units:seconds
         DAQmx_Val_Low,           # idle state: low
         0.00, .0001, duration,  # initial delay, low time, high time
