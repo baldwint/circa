@@ -79,6 +79,7 @@ class ImagePanel(wx.Panel):
                                ax=self.ax)
 
         self.cbar = fig.colorbar(self.im, aspect=8)
+        self.ax.invert_xaxis()
 
         # whether the vertical scale is locked
         self.scale_locked = False
@@ -136,6 +137,7 @@ class ImagePanel(wx.Panel):
         self.im = show_image(image, x, y,
                              ax=self.ax,
                              cax=self.cbar.ax,
+                             mirror=True,
                              hist=True)
         self.canvas.draw()
 

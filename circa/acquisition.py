@@ -197,7 +197,7 @@ def main():
     except NotImplementedError:
         GalvoPixel = FakeGalvoPixel
 
-    xgalvo = GalvoPixel("Dev2/ao0", reverse=True)
+    xgalvo = GalvoPixel("Dev2/ao0")
     ygalvo = GalvoPixel("Dev2/ao1")
 
     from slow import make_generator_factory

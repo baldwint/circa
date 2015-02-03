@@ -324,8 +324,6 @@ def main():
     import wx
     from acquisition import FakeGalvoPixel, AcquisitionWindow
 
-    #xgalvo = FakeGalvoPixel("Dev2/ao0", reverse=True)
-    #ygalvo = FakeGalvoPixel("Dev2/ao1")
     ygalvo = AFGasDAC(det_arb)
     xgalvo = AFGasDAC(rf_arb)
 

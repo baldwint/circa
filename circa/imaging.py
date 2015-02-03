@@ -17,7 +17,7 @@ def add_sizebar(ax, size, **kwargs):
 
 def show_image(vector, X, Y,
                cal = None, bar = 1.,
-               ax = None, cax=None, hist=True, **kwargs):
+               ax = None, cax=None, hist=True, mirror=True, **kwargs):
     """
     show a density plot with a sizebar,
 
@@ -32,6 +32,8 @@ def show_image(vector, X, Y,
     if hist:
         add_hist_to_cbar(im)
         im.callbacksSM.connect('changed', add_hist_to_cbar)
+    if mirror:
+        ax.invert_xaxis()
     if cal is not None:
         sb = add_sizebar(ax,
                           size=bar/cal,
