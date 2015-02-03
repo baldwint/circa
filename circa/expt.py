@@ -1,3 +1,4 @@
+import time
 import PyDAQmx as daq
 from PyDAQmx import uInt32, int32, int16, byref
 from contextlib import contextmanager
@@ -87,6 +88,13 @@ def scan(gen, t=0.1):
             yield last
             last = finish_count(p, c)/t
         yield last
+
+def gen_count_rate(t=0.1):
+    pc = configure_counter(duration=t)
+    start = time.time()
+    while True:
+        y = do_count(*pc)/t
+        yield time.time() - start, y
 
 
 # ---------------

@@ -193,7 +193,21 @@ class MonitorPanel(wx.Panel):
 
 
 if __name__ == "__main__":
+    title = 'Monitor'
+
+    try:
+        from .expt import gen_count_rate
+        gen = gen_count_rate(t=0.1)
+    except NotImplementedError:
+        gen = silly_gen()
+        title += ' (fake)'
+
+    import sys
+    if '--fake' in sys.argv:
+        gen = silly_gen()
+        title += ' (fake)'
+
     app = wx.App(False)
-    frame = MonitorWindow(None, 'Monitor', datagen=silly_gen())
+    frame = MonitorWindow(None, title, datagen=gen)
     frame.Show(True)
     app.MainLoop()
