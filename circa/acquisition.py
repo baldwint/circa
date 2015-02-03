@@ -13,7 +13,7 @@ import numpy as n
 
 from monitor import WorkerThread, EVT_RESULT, EVT_FINISHED
 
-from ui import ImagePanel, DragState
+from viewer import ImagePanel, DragState
 from scan import ScanPanel
 from galvo import DoubleGalvoPanel
 import wx
