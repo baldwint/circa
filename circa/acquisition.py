@@ -191,14 +191,17 @@ class FakeGalvoPixel(object):
 
 
 def main():
+    from .config import load_config
+    cfg = load_config()
+
     # galvos
     try:
         from expt import GalvoPixel
     except NotImplementedError:
         GalvoPixel = FakeGalvoPixel
 
-    xgalvo = GalvoPixel("Dev2/ao0")
-    ygalvo = GalvoPixel("Dev2/ao1")
+    xgalvo = GalvoPixel(cfg.get('galvos', 'xgalvo'))
+    ygalvo = GalvoPixel(cfg.get('galvos', 'ygalvo'))
 
     from slow import make_generator_factory
     make_data_generator = make_generator_factory(xgalvo,ygalvo)
