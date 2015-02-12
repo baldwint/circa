@@ -195,9 +195,14 @@ class MonitorPanel(wx.Panel):
 if __name__ == "__main__":
     title = 'Monitor'
 
+    from .config import load_config
+    cfg = load_config()
+    pulsechan = cfg.get('counting', 'pulsechan')
+    countchan = cfg.get('counting', 'countchan')
+
     try:
         from .expt import gen_count_rate
-        gen = gen_count_rate(t=0.1)
+        gen = gen_count_rate(t=0.1, pulsechan=pulsechan, countchan=countchan)
     except NotImplementedError:
         gen = silly_gen()
         title += ' (fake)'

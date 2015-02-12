@@ -202,9 +202,12 @@ def main():
 
     xgalvo = GalvoPixel(cfg.get('galvos', 'xgalvo'))
     ygalvo = GalvoPixel(cfg.get('galvos', 'ygalvo'))
+    pulsechan = cfg.get('counting', 'pulsechan')
+    countchan = cfg.get('counting', 'countchan')
 
     from slow import make_generator_factory
-    make_data_generator = make_generator_factory(xgalvo,ygalvo)
+    make_data_generator = make_generator_factory(xgalvo, ygalvo,
+                                                 pulsechan, countchan)
 
     # gui app
     app = wx.App(False)

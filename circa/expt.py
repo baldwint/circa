@@ -7,12 +7,19 @@ from contextlib import contextmanager
 # COUNTING STUFF
 # --------------
 
-def configure_counter(duration=.1):
+def configure_counter(duration=.1,
+                      pulsechan="Dev1/ctr1",
+                      countchan="Dev1/ctr0"):
+    """
+    Configure the card to count edges on `countchan`, for the specified
+    `duration` of time (seconds). This is a hardware-timed thing,
+    using the paired counter `pulsechan` to gate the detection
+    """
 
     # configure pulse (for hardware timing)
     pulse = daq.Task()
     pulse.CreateCOPulseChanTime(
-        "Dev1/ctr1", "",         # physical channel, name to assign
+        pulsechan, "",            # physical channel, name to assign
         daq.DAQmx_Val_Seconds,   # units:seconds
         daq.DAQmx_Val_Low,       # idle state: low
         0.00, .0001, duration,   # initial delay, low time, high time
@@ -20,7 +27,7 @@ def configure_counter(duration=.1):
 
     # configure counter
     ctr = daq.Task()
-    ctr.CreateCICountEdgesChan("Dev1/ctr0", "",
+    ctr.CreateCICountEdgesChan(countchan, "",
                                daq.DAQmx_Val_Rising,
                                0,  # initial count
                                daq.DAQmx_Val_CountUp)
@@ -28,7 +35,9 @@ def configure_counter(duration=.1):
     # pause trigger
     ctr.SetPauseTrigType(daq.DAQmx_Val_DigLvl)
     ctr.SetDigLvlPauseTrigWhen(daq.DAQmx_Val_Low)
-    ctr.SetDigLvlPauseTrigSrc("/Dev1/Ctr1InternalOutput")
+    # if these are paired counters, we can use the internal output
+    trigchan = "/%sInternalOutput" % pulsechan.replace('ctr', 'Ctr')
+    ctr.SetDigLvlPauseTrigSrc(trigchan)
 
     return pulse, ctr
 
@@ -77,9 +86,9 @@ def counting(pulse, ctr):
             print "no need to stop timer"
         raise
 
-def scan(gen, t=0.1):
+def scan(gen, t=0.1, **kwargs):
     """threaded version"""
-    p,c = configure_counter(duration=t)
+    p,c = configure_counter(duration=t, **kwargs)
     with counting(p,c):
         next(gen)
         last = do_count(p,c)/t
@@ -89,8 +98,8 @@ def scan(gen, t=0.1):
             last = finish_count(p, c)/t
         yield last
 
-def gen_count_rate(t=0.1):
-    pc = configure_counter(duration=t)
+def gen_count_rate(t=0.1, **kwargs):
+    pc = configure_counter(duration=t, **kwargs)
     start = time.time()
     while True:
         y = do_count(*pc)/t

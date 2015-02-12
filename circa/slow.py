@@ -34,11 +34,12 @@ def yielding_fromiter(gen, result):
         result[loc] = val
         yield
 
-def make_generator_factory(xgalvo, ygalvo):
+def make_generator_factory(xgalvo, ygalvo, pulsechan, countchan):
     """
-    given two galvonometer objects (xgalvo, ygalvo), return a function
-    that would produce data generators for 2D scans using those two
-    galvonometers.
+    given two galvonometer objects (xgalvo, ygalvo) and strings
+    identifying the counter pair used for counting (pulsechan,
+    countchan), return a function that would produce data generators for
+    2D scans using those parameters.
     """
 
     def make_data_generator(X, Y, t, vector):
@@ -55,7 +56,8 @@ def make_generator_factory(xgalvo, ygalvo):
             scan = fake_scan
 
         def datagen(X, Y, t):
-            return scan(gen_2D(X, Y, xgalvo, ygalvo), t)
+            gen = gen_2D(X, Y, xgalvo, ygalvo)
+            return scan(gen, t, pulsechan=pulsechan, countchan=countchan)
 
         gen = chunk(yielding_fromiter(datagen(X, Y, t), vector),
                 n = vector.shape[-1])
