@@ -1,7 +1,7 @@
 from setuptools import setup
 
 # dependencies
-reqs = ['numpy', 'PyDAQmx', 'matplotlib']
+reqs = ['numpy', 'PyDAQmx', 'matplotlib', 'pyvisa']
 # we also need wxPython, but pip cannot install this
 extras = {}
 
