@@ -2,6 +2,13 @@ import os
 from ConfigParser import ConfigParser
 
 def load_default_config():
+     # The default configuration below is set up for my (tkb)
+     # room-temperature setup in room 273. To use a different setup,
+     # don't modify this source code - it is better to make a
+     # ``circa.cfg`` file in your home directory. The settings defined
+     # there will override these.
+     # See the file ``circa_example.cfg`` for a file that makes circa
+     # work on Andrew's cryogenic setup in room 272.
     config = ConfigParser()
     config.add_section('galvos')
     config.set('galvos', 'xgalvo',  'Dev2/ao0')
