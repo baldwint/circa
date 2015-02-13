@@ -154,22 +154,14 @@ class Arb(object):
 
 # load it
 
-import visa
-rm = visa.ResourceManager()
+def make_and_load_waveforms(X, Y, t, det_afg, rf_afg):
+    det_arb = Arb(det_afg)
+    rf_arb = Arb(rf_afg)
 
-det_afg = rm.get_instrument('GPIB::11')
-det_afg.ask('*IDN?')
-rf_afg = rm.get_instrument('GPIB::10')
-rf_afg.ask('*IDN?')
+    s_ch = AFG_channel(det_afg, 1)
+    y_ch = AFG_channel(det_afg, 2)
+    x_ch = AFG_channel(rf_afg)
 
-det_arb = Arb(det_afg)
-rf_arb = Arb(rf_afg)
-
-s_ch = AFG_channel(det_afg, 1)
-y_ch = AFG_channel(det_afg, 2)
-x_ch = AFG_channel(rf_afg)
-
-def make_and_load_waveforms(X, Y, t=.01):
     X,Y,s = make_waveforms(X, Y)
 
     npts = len(s)     # number of waveform points
@@ -196,8 +188,8 @@ def make_and_load_waveforms(X, Y, t=.01):
 
 class AFGasDAC(object):
 
-    def __init__(self, arb):
-        self.arb = arb
+    def __init__(self, afg):
+        self.arb = Arb(afg)
 
     def get_value(self):
         return self.arb.get_point(1)
@@ -208,25 +200,25 @@ class AFGasDAC(object):
 
 from PyDAQmx import *
 
-def make_pulse(duration=.1):
+def make_pulse(duration, pulsechan):
     pulse = Task()
     pulse.CreateCOPulseChanTime(
-        "Dev1/ctr2", "",         # physical channel, name to assign
+        pulsechan, "",           # physical channel, name to assign
         DAQmx_Val_Seconds,       # units:seconds
         DAQmx_Val_Low,           # idle state: low
         0.00, .0001, duration,  # initial delay, low time, high time
     )
     return pulse
 
-def make_buffered_counter(samps):
+def make_buffered_counter(samps, countchan, sampleclk):
     ctr = Task()
-    ctr.CreateCICountEdgesChan("Dev1/ctr0", "",
+    ctr.CreateCICountEdgesChan(countchan, "",
                                DAQmx_Val_Rising,
                                0,  # initial count
                                DAQmx_Val_CountUp)
 
     # configure sample clock (http://www.ni.com/white-paper/5404/en/)
-    ctr.CfgSampClkTiming("PFI34",   # source of the sample clock
+    ctr.CfgSampClkTiming(sampleclk,   # source of the sample clock
                          10000,  # rate of the sample clock.
                                  # not sure about units, lifted from white paper
                          DAQmx_Val_Rising,       # activeEdge
@@ -235,9 +227,11 @@ def make_buffered_counter(samps):
 
     return ctr
 
-def many_samples(samps, timeout=120.):
-    ctr = make_buffered_counter(samps)
-    co = make_pulse(.01)  # this will trigger the burst on AFGs
+def many_samples(samps, timeout, pulsechan, countchan, sampleclk):
+    ctr = make_buffered_counter(samps, countchan=countchan,
+                                       sampleclk=sampleclk)
+    # make a pulse to trigger the burst on AFGs
+    co = make_pulse(.01, pulsechan=pulsechan)
     ctr.StartTask()  # start counting
     co.StartTask()   # send trigger
     # while that's going, allocate some memory
@@ -264,37 +258,22 @@ def decode_image(result, shape, zigzag=False):
         im[1::2] = im[1::2][:,::-1]  #zigzag
     return im
 
-#from time import sleep
-
-def do_everything(X, Y, t=.01):
-    naqs = make_and_load_waveforms(X, Y, t)
-    #sleep(1)
-    outshape = Y.shape + X.shape
-    timeout = 5. + naqs * t
-    print(timeout)
-    result = many_samples(naqs, timeout=timeout)
-    return decode_image(result, shape=outshape)
-
-# DO IT
-
-#from wanglib.pylab_extensions.density import density_plot
-#p.mpl.rc('image', origin='lower', interpolation='nearest')
-#
-#X = n.arange(4300, 4700, 2)
-#Y = n.arange(4100, 4400, 2)
-#
-#result = do_everything(X,Y, t=.005)
-#density_plot(result, X, Y)
-
 # generators for the GUI
 
-def generate_frames(X, Y, t=.01, repeat=True):
-    naqs = make_and_load_waveforms(X, Y, t)
+def generate_frames(X, Y, t=.01, repeat=True,
+                    pulsechan="Dev1/ctr2",
+                    countchan="Dev1/ctr0",
+                    sampleclk="PFI34",
+                    det_afg=None, rf_afg=None):
+    naqs = make_and_load_waveforms(X, Y, t, det_afg, rf_afg)
     outshape = Y.shape + X.shape
     timeout = 5. + naqs * t
     while True:
         try:
-            result = many_samples(naqs, timeout=timeout)
+            result = many_samples(naqs, timeout,
+                                  pulsechan=pulsechan,
+                                  countchan=countchan,
+                                  sampleclk=sampleclk)
         except DAQError as e:
             print(e)
             raise StopIteration
@@ -312,11 +291,20 @@ def update_result(gen, resultarray):
         resultarray[:] = result
         yield
 
-def make_generator_factory(xgalvo, ygalvo):
+def make_generator_factory(xgalvo, ygalvo,
+                           pulsechan, countchan, sampleclk,
+                           det_afg, rf_afg):
     # don't do anything with the galvos, they're fake
 
     def make_data_generator(X, Y, t, vector, repeat=True):
-        return update_result(generate_frames(X, Y, t, repeat=repeat), vector)
+        gen = generate_frames(X, Y, t, repeat=repeat,
+                              pulsechan=pulsechan,
+                              countchan=countchan,
+                              sampleclk=sampleclk,
+                              det_afg=det_afg,
+                              rf_afg=rf_afg,
+                              )
+        return update_result(gen, vector)
 
     return make_data_generator
 
@@ -324,10 +312,26 @@ def main():
     import wx
     from acquisition import FakeGalvoPixel, AcquisitionWindow
 
-    ygalvo = AFGasDAC(det_arb)
-    xgalvo = AFGasDAC(rf_arb)
+    from .config import load_config
+    cfg = load_config()
 
-    make_data_generator = make_generator_factory(xgalvo,ygalvo)
+    pulsechan = cfg.get('fast', 'pulsechan')
+    countchan = cfg.get('fast', 'countchan')
+    sampleclk = cfg.get('fast', 'sampleclk')
+
+    import visa
+    rm = visa.ResourceManager()
+
+    det_afg = rm.get_instrument(cfg.get('fast', 'det_afg'))
+    rf_afg = rm.get_instrument(cfg.get('fast', 'rf_afg'))
+
+    ygalvo = AFGasDAC(det_afg)
+    xgalvo = AFGasDAC(rf_afg)
+
+    make_data_generator = make_generator_factory(xgalvo, ygalvo,
+                                                 pulsechan, countchan,
+                                                 sampleclk,
+                                                 det_afg, rf_afg)
 
     # gui app
     app = wx.App(False)
