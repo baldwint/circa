@@ -15,6 +15,14 @@ def add_sizebar(ax, size, **kwargs):
     ax.add_artist(asb)
     return asb
 
+def add_nice_sizebar(ax, cal, bar=1.):
+    sb = add_sizebar(ax, size=bar/cal,
+                         label='%dum' % bar,
+                         pad=.3, borderpad=.2,
+                         frameon=True)
+    sb.patch.set_alpha(0.5)
+    return sb
+
 def show_image(vector, X, Y,
                cal = None, bar = 1.,
                ax = None, cax=None, hist=True, mirror=True, **kwargs):
@@ -35,12 +43,7 @@ def show_image(vector, X, Y,
     if mirror:
         ax.invert_xaxis()
     if cal is not None:
-        sb = add_sizebar(ax,
-                          size=bar/cal,
-                          label='%dum' % bar,
-                          pad=.3, borderpad=.2,
-                          frameon=True)
-        sb.patch.set_alpha(0.5)
+        add_nice_sizebar(ax, cal, bar)
     return im
 
 from matplotlib.patches import Polygon

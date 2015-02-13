@@ -58,7 +58,7 @@ class MainWindow(wx.Frame):
             self.panel.open(self.dirname, self.filename)
         dlg.Destroy()
 
-from imaging import show_image, add_hist_to_cbar
+from imaging import show_image, add_hist_to_cbar, add_nice_sizebar
 
 class ImagePanel(wx.Panel):
 
@@ -123,8 +123,24 @@ class ImagePanel(wx.Panel):
         self.canvas.mpl_connect('button_release_event', self.ds.recv)
 
         self.box = wx.StaticBox(self, label="Image")
-        self.sizer = wx.StaticBoxSizer(self.box)
+        self.sizer = wx.StaticBoxSizer(self.box, orient=wx.VERTICAL)
         self.sizer.Add(self.canvas, 1, wx.EXPAND)
+
+        self.checkbox = wx.CheckBox(self, label="Sizebar")
+        self.Bind(wx.EVT_CHECKBOX, self.add_or_remove_sizebar)
+        self.bar_spinbox = wx.SpinCtrlDouble(self, value='1')
+        self.cal_spinbox = wx.SpinCtrlDouble(self, value='.083', inc=.001)
+        self.Bind(wx.EVT_SPINCTRLDOUBLE, self.update_sizebar)
+
+        self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
+        self.subsizer.Add(self.checkbox, 0, wx.EXPAND)
+        self.subsizer.Add(self.bar_spinbox, 0, wx.EXPAND)
+        self.subsizer.Add(wx.StaticText(self, label='um, cal:'),
+                0, wx.EXPAND)
+        self.subsizer.Add(self.cal_spinbox, 0, wx.EXPAND)
+        self.subsizer.Add(wx.StaticText(self, label='um/bit'),
+                0, wx.EXPAND)
+        self.sizer.Add(self.subsizer, 0, wx.EXPAND)
 
         self.SetSizer(self.sizer)
         self.SetAutoLayout(1)
@@ -133,6 +149,20 @@ class ImagePanel(wx.Panel):
     def open(self, dirname, filename):
         with n.load(os.path.join(dirname, filename)) as npz:
             self.update_image(npz['image'], npz['X'], npz['Y'])
+
+    def update_sizebar(self, event):
+        if self.checkbox.IsChecked():
+            self.sb.remove()
+            self.add_or_remove_sizebar(None)
+
+    def add_or_remove_sizebar(self, event):
+        if self.checkbox.IsChecked():
+            bar = self.bar_spinbox.GetValue()
+            cal = self.cal_spinbox.GetValue()
+            self.sb = add_nice_sizebar(self.ax, cal=cal, bar=bar)
+        else:
+            self.sb.remove()
+        self.canvas.draw()
 
     def update_image(self, image, x, y):
         """ load a new image."""
