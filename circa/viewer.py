@@ -138,6 +138,7 @@ class ImagePanel(wx.Panel):
         """ load a new image."""
         self.ax.clear()  # remove any previous images
                          # would be cool to have a control for this
+        self.scale_locked = False
         self.im = show_image(image, x, y,
                              ax=self.ax,
                              cax=self.cbar.ax,
