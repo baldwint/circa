@@ -2,7 +2,7 @@ from time import sleep
 import itertools
 import numpy as n
 
-def fake_scan(gen, t=0.1):
+def fake_scan(gen, t=0.1, **kwargs):
     for step in gen:
         sleep(t)
         yield int(200000 * n.random.random())
