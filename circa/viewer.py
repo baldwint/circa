@@ -46,8 +46,12 @@ class MainWindow(wx.Frame):
 
     def OnOpen(self, e):
         self.dirname = ''
-        dlg = wx.FileDialog(self, "Choose a file",
-                self.dirname, '', '*.*', wx.OPEN)
+        dlg = wx.FileDialog(self,
+                message="Choose a file",
+                defaultDir=self.dirname,
+                defaultFile='',
+                wildcard="NPZ files (*.npz)|*.npz",
+                style=wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetFilename()
             self.dirname = dlg.GetDirectory()
@@ -170,6 +174,6 @@ class DragState(object):
 
 if __name__ == "__main__":
     app = wx.App(False)
-    frame = MainWindow(None, 'Hello World')
+    frame = MainWindow(None, 'Confocal Image Viewer')
     frame.Show(True)
     app.MainLoop()
