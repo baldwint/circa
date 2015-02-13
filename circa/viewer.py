@@ -57,6 +57,7 @@ class MainWindow(wx.Frame):
             self.dirname = dlg.GetDirectory()
             self.panel.open(self.dirname, self.filename)
         dlg.Destroy()
+        self.SetTitle(self.filename)
 
 from imaging import show_image, add_hist_to_cbar, add_nice_sizebar
 
