@@ -11,7 +11,7 @@ from wanglib.pylab_extensions.density import density_plot
 
 class MainWindow(wx.Frame):
 
-    def __init__(self, parent, title):
+    def __init__(self, parent, title, filename=None):
         wx.Frame.__init__(self, parent, title=title, size=(500,400))
 
         self.panel = ImagePanel(self)
@@ -32,6 +32,9 @@ class MainWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         self.Bind(wx.EVT_MENU, self.OnOpen, menuOpen)
+
+        if filename is not None:
+            self.open('', filename)
 
         #self.Show(True)
 
@@ -55,9 +58,12 @@ class MainWindow(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             self.filename = dlg.GetFilename()
             self.dirname = dlg.GetDirectory()
-            self.panel.open(self.dirname, self.filename)
+            self.open(self.dirname, self.filename)
         dlg.Destroy()
-        self.SetTitle(self.filename)
+
+    def open(self, dirname, filename):
+        self.panel.open(dirname, filename)
+        self.SetTitle(filename)
 
 from imaging import show_image, add_hist_to_cbar, add_nice_sizebar
 
@@ -205,7 +211,17 @@ class DragState(object):
             self.callback(self)
 
 if __name__ == "__main__":
+    import sys
+
+    # open a window for each command line arg
+    files_to_open = sys.argv[1:]
+
+    if not files_to_open:
+        # or open a single, blank window
+        files_to_open.append(None)
+
     app = wx.App(False)
-    frame = MainWindow(None, 'Confocal Image Viewer')
-    frame.Show(True)
+    for fn in files_to_open:
+        frame = MainWindow(None, 'Confocal Image Viewer', filename=fn)
+        frame.Show(True)
     app.MainLoop()
