@@ -127,7 +127,7 @@ class MonitorPanel(wx.Panel):
         self.subsizer.Add(self.checkbox, 0, wx.EXPAND)
         self.subsizer.Add(self.spinbox, 1, wx.EXPAND)
         self.subsizer.Add(wx.StaticText(self, label='data points'),
-                0, wx.EXPAND)
+                0, wx.ALIGN_CENTER)
         self.subsizer.Add(self.button, 0, wx.EXPAND)
 
         self.box = wx.StaticBox(self, label="Monitor")

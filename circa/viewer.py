@@ -141,12 +141,12 @@ class ImagePanel(wx.Panel):
 
         self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.subsizer.Add(self.checkbox, 0, wx.EXPAND)
-        self.subsizer.Add(self.bar_spinbox, 0, wx.EXPAND)
+        self.subsizer.Add(self.bar_spinbox, 1, wx.EXPAND)
         self.subsizer.Add(wx.StaticText(self, label='um, cal:'),
-                0, wx.EXPAND)
-        self.subsizer.Add(self.cal_spinbox, 0, wx.EXPAND)
+                0, wx.ALIGN_CENTER)
+        self.subsizer.Add(self.cal_spinbox, 1, wx.EXPAND)
         self.subsizer.Add(wx.StaticText(self, label='um/bit'),
-                0, wx.EXPAND)
+                0, wx.ALIGN_CENTER)
         self.sizer.Add(self.subsizer, 0, wx.EXPAND)
 
         self.SetSizer(self.sizer)
