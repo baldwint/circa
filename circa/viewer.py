@@ -173,7 +173,9 @@ class ImagePanel(wx.Panel):
 
     def update_image(self, image, x, y):
         """ load a new image."""
-        self.ax.clear()       # remove any previous images/colorbars
+        #self.ax.clear()
+        for prev_im in self.ax.images:
+            prev_im.remove()  # remove any previous images/colorbars
         self.cbar.ax.clear()  # would be cool to have a control for this
         self.scale_locked = False
         self.im = show_image(image, x, y,
