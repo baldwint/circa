@@ -199,8 +199,8 @@ def main():
     import visa
     rm = visa.ResourceManager()
 
-    det_afg = rm.get_instrument(cfg.get('fast', 'det_afg'))
-    rf_afg = rm.get_instrument(cfg.get('fast', 'rf_afg'))
+    det_afg = rm.get_instrument(cfg.get('fast', 'det_afg'), timeout=10e3)
+    rf_afg = rm.get_instrument(cfg.get('fast', 'rf_afg'), timeout=10e3)
 
     ygalvo = AFGasDAC(det_afg)
     xgalvo = AFGasDAC(rf_afg)
