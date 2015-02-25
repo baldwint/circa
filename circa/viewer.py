@@ -215,6 +215,11 @@ class DragState(object):
 if __name__ == "__main__":
     import sys
 
+    # support wildcard character on windows
+    import glob
+    if '*' in sys.argv[-1]:
+         sys.argv[-1:] = glob.glob(sys.argv[-1])
+
     # open a window for each command line arg
     files_to_open = sys.argv[1:]
 
