@@ -1,13 +1,6 @@
 from __future__ import print_function
 
 import os
-import itertools
-
-def get_next_filename(dir, fmt="image%03d.npz", start=1):
-    for i in itertools.count(start):
-        if fmt % i not in os.listdir(dir):
-            return fmt % i
-
 from datetime import timedelta
 import numpy as n
 
@@ -16,6 +9,7 @@ from monitor import WorkerThread, EVT_RESULT, EVT_FINISHED
 from viewer import ImagePanel, DragState
 from scan import ScanPanel
 from galvo import DoubleGalvoPanel
+from util import get_next_filename
 import wx
 
 class AcquisitionWindow(wx.Frame):
