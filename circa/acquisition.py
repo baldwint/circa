@@ -126,7 +126,8 @@ class AcquisitionWindow(wx.Frame):
         dlg = wx.FileDialog(self,
                 message="Save NPZ file",
                 defaultDir=self.save_to_dir,
-                defaultFile=get_next_filename(self.save_to_dir),
+                defaultFile=get_next_filename(self.save_to_dir,
+                                              fmt="image%03d.npz"),
                 wildcard="NPZ files (*.npz)|*.npz",
                 style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
         if dlg.ShowModal() == wx.ID_OK:
