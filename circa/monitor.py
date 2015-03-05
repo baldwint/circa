@@ -9,6 +9,7 @@ import numpy as n
 from time import sleep, time
 import threading
 from collections import deque
+from .util import get_next_filename
 
 def silly_gen(inc=0.1):
     """
@@ -72,21 +73,40 @@ class MonitorWindow(wx.Frame):
         if datagen is None:
             datagen = silly_gen()
 
+        self.statusbar = self.CreateStatusBar()
         self.panel = MonitorPanel(self, datagen)
+        self.save_to_dir = os.path.expanduser('~')
 
         filemenu = wx.Menu()
         menuExit = filemenu.Append(wx.ID_EXIT, "E&xit", " Stop program")
+        menuSave = filemenu.Append(wx.ID_SAVE, "&Save", " Save a file")
 
         menuBar = wx.MenuBar()
         menuBar.Append(filemenu, "&File")
         self.SetMenuBar(menuBar)
 
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
+        self.Bind(wx.EVT_MENU, self.OnSave, menuSave)
 
     def OnExit(self, e):
         # Runs when the 'Exit' menu option is selected,
         # but not when the x is hit
         self.Close(True)
+
+    def OnSave(self, e):
+        xy = self.panel.get_data()
+        dlg = wx.FileDialog(self,
+                message="Save NPY file",
+                defaultDir=self.save_to_dir,
+                defaultFile=get_next_filename(self.save_to_dir,
+                                              fmt="monitor%03d.npy"),
+                wildcard="NPY files (*.npy)|*.npy",
+                style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.save_to_dir = dlg.GetDirectory()
+            path = dlg.GetPath()
+            n.save(path, xy)
+            self.statusbar.SetStatusText('Saved %s' % path)
 
 
 class MonitorPanel(wx.Panel):
@@ -190,6 +210,9 @@ class MonitorPanel(wx.Panel):
         else:
             maxlen = None
         self.setup_deques(self.x, self.y, maxlen=maxlen)
+
+    def get_data(self):
+        return self.line.get_data()
 
 
 if __name__ == "__main__":
