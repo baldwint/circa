@@ -177,11 +177,12 @@ class ImagePanel(wx.Panel):
         for prev_im in self.ax.images:
             prev_im.remove()  # remove any previous images/colorbars
         self.cbar.ax.clear()  # would be cool to have a control for this
-        self.scale_locked = False
+        clim = self.im.get_clim() if self.scale_locked else None
         self.im = show_image(image, x, y,
                              ax=self.ax,
                              cax=self.cbar.ax,
                              mirror=True,
+                             clim=clim,
                              hist=True)
         self.canvas.draw()
 

@@ -25,7 +25,8 @@ def add_nice_sizebar(ax, cal, bar=1.):
 
 def show_image(vector, X, Y,
                cal = None, bar = 1.,
-               ax = None, cax=None, hist=True, mirror=True, **kwargs):
+               ax = None, cax=None,
+               hist=True, clim=None, mirror=True, **kwargs):
     """
     show a density plot with a sizebar,
 
@@ -36,6 +37,8 @@ def show_image(vector, X, Y,
     if ax is None:
         ax = gca()
     im = density_plot(vector, X, Y, ax=ax, **kwargs)
+    if clim is not None:
+        im.set_clim(clim)
     cbar = ax.figure.colorbar(im, cax=cax)
     if hist:
         add_hist_to_cbar(im)
