@@ -51,8 +51,10 @@ class AcquisitionWindow(wx.Frame):
                 ymin, ymax = sorted((state.mousedown.ydata, state.mouseup.ydata))
                 rect = [xmin, xmax, ymin, ymax]
                 rect = [int(num) for num in rect]
-                if xmin == xmax and ymin == ymax:
-                    self.galvo.set_values(xmin, ymin)
+                if xmin == xmax or ymin == ymax:
+                    xloc = (xmin + xmax) // 2
+                    yloc = (ymin + ymax) // 2
+                    self.galvo.set_values(xloc, yloc)
                 else:
                     self.control.set_values(*rect)
 
