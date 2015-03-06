@@ -6,7 +6,7 @@ import numpy as n
 
 from monitor import WorkerThread, EVT_RESULT, EVT_FINISHED
 
-from viewer import ImagePanel, DragState
+from viewer import ImagePanel, DragState, Marker
 from scan import ScanPanel
 from galvo import DoubleGalvoPanel
 from util import get_next_filename
@@ -20,6 +20,7 @@ class AcquisitionWindow(wx.Frame):
 
         self.xgalvo = xgalvo
         self.ygalvo = ygalvo
+        self.ghost = None
 
         self.make_data_generator = make_data_generator
 
@@ -28,8 +29,8 @@ class AcquisitionWindow(wx.Frame):
 
         #panels
         self.panel = ImagePanel(self, size=(nvals,nvals))
-        self.galvo = DoubleGalvoPanel(self, xcall=self.xgalvo.set_value,
-                                            ycall=self.ygalvo.set_value,
+        self.galvo = DoubleGalvoPanel(self, xcall=self.set_xgalvo_value,
+                                            ycall=self.set_ygalvo_value,
                                             nvals=nvals)
         self.control = ScanPanel(self, self.scangen,
                                  abortable=True, nvals=nvals,
@@ -54,7 +55,7 @@ class AcquisitionWindow(wx.Frame):
                 if xmin == xmax or ymin == ymax:
                     xloc = (xmin + xmax) // 2
                     yloc = (ymin + ymax) // 2
-                    self.galvo.set_values(xloc, yloc)
+                    self.set_galvo_values(xloc, yloc)
                 else:
                     self.control.set_values(*rect)
 
@@ -166,6 +167,30 @@ class AcquisitionWindow(wx.Frame):
         elapsed = timedelta(seconds=int(event.elapsed))
         self.statusbar.SetStatusText('Scan completed in %s' % str(elapsed))
         event.Skip() # let the panel also handle
+
+    def set_galvo_values(self, xloc, yloc):
+        """ gets called when we want to move both galvos"""
+        # draw or update the ghost
+        if self.ghost is None:
+            self.ghost = Marker(self.panel.ax, xloc, yloc,
+                                mec='w', mfc='none',
+                                ms=10, mew=4)
+        else:
+            self.ghost.set_pos(xloc, yloc)
+        # update the galvo panel. This actually moves the galvos
+        self.galvo.set_values(xloc, yloc)
+
+    def set_xgalvo_value(self, value):
+        self.xgalvo.set_value(value)
+        if self.ghost is not None:
+            self.ghost.set_x(value)
+            self.ghost.draw()
+
+    def set_ygalvo_value(self, value):
+        self.ygalvo.set_value(value)
+        if self.ghost is not None:
+            self.ghost.set_y(value)
+            self.ghost.draw()
 
 
 class FakeGalvoPixel(object):

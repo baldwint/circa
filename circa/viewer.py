@@ -194,6 +194,28 @@ class ImagePanel(wx.Panel):
         self.im.changed()
         self.canvas.draw()
 
+
+class Marker(object):
+    """ A circle marking a point on the image """
+
+    def __init__(self, ax, xloc, yloc, **kwargs):
+        self.line, = ax.plot((xloc,), (yloc,), 'o',
+                             scalex=False, scaley=False,
+                             **kwargs)
+
+    def set_x(self, xloc):
+        self.line.set_xdata((xloc,))
+
+    def set_y(self, yloc):
+        self.line.set_ydata((yloc,))
+
+    def set_pos(self, xloc, yloc):
+        self.line.set_data((xloc,), (yloc,))
+
+    def draw(self):
+        self.line.axes.figure.canvas.draw()
+
+
 class DragState(object):
     """
     handles click-drag selection of an area in matplotlib
