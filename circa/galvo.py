@@ -103,6 +103,11 @@ class DoubleGalvoPanel(wx.Panel):
         x,y = int(x),int(y)
         self.X.SetValue(x)
         self.Y.SetValue(y)
+        self.update_both_galvos()
+
+    def update_both_galvos(self):
+        x = int(self.X.GetValue())
+        y = int(self.Y.GetValue())
         if self.xcall is not None:
             self.xcall(x)
         if self.ycall is not None:

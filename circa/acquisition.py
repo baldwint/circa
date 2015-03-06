@@ -166,6 +166,7 @@ class AcquisitionWindow(wx.Frame):
     def on_scan_finished(self, event):
         elapsed = timedelta(seconds=int(event.elapsed))
         self.statusbar.SetStatusText('Scan completed in %s' % str(elapsed))
+        self.galvo.update_both_galvos() # return galvos to orig pos
         event.Skip() # let the panel also handle
 
     def set_galvo_values(self, xloc, yloc):
