@@ -88,6 +88,12 @@ class MonitorWindow(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
         self.Bind(wx.EVT_MENU, self.OnSave, menuSave)
 
+        # shortcuts
+        shortcuts = wx.AcceleratorTable([
+            (wx.ACCEL_CTRL, ord('S'), wx.ID_SAVE),
+            ])
+        self.SetAcceleratorTable(shortcuts)
+
     def OnExit(self, e):
         # Runs when the 'Exit' menu option is selected,
         # but not when the x is hit
