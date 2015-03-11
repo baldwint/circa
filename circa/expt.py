@@ -1,3 +1,5 @@
+from __future__ import print_function
+import sys
 import time
 import PyDAQmx as daq
 from PyDAQmx import uInt32, int32, int16, byref
@@ -76,14 +78,14 @@ def counting(pulse, ctr):
         # stop the counters
         try:
             ctr.StopTask()
-            print "stopped counter"
-        except DAQError:
-            print "no need to stop counter"
+            print("stopped counter")
+        except daq.DAQError:
+            print("no need to stop counter")
         try:
             pulse.StopTask()
-            print "stopped timer"
-        except DAQError:
-            print "no need to stop timer"
+            print("stopped timer")
+        except daq.DAQError:
+            print("no need to stop timer")
         raise
 
 def scan(gen, t=0.1, **kwargs):
@@ -91,7 +93,11 @@ def scan(gen, t=0.1, **kwargs):
     p,c = configure_counter(duration=t, **kwargs)
     with counting(p,c):
         next(gen)
-        last = do_count(p,c)/t
+        try:
+            last = do_count(p,c)/t
+        except daq.DAQError as e:
+            print(str(e), file=sys.stderr)
+            raise StopIteration
         for step in gen:
             start_count(p, c)
             yield last
