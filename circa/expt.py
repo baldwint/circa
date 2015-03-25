@@ -105,10 +105,10 @@ def scan(gen, t=0.1, **kwargs):
         yield last
 
 def gen_count_rate(t=0.1, **kwargs):
-    pc = configure_counter(duration=t, **kwargs)
+    p,c = configure_counter(duration=t, **kwargs)
     start = time.time()
     while True:
-        y = do_count(*pc)/t
+        y = do_count(p,c)/t
         yield time.time() - start, y
 
 
