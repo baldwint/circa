@@ -157,6 +157,8 @@ class MonitorPanel(wx.Panel):
         self.spinbox = wx.SpinCtrlDouble(self,
                 value='100', min=10, max=10000, inc=10)
         self.Bind(wx.EVT_SPINCTRLDOUBLE, self.impose_limit)
+        self.clear_button = wx.Button(self, label="Clear")
+        self.clear_button.Bind(wx.EVT_BUTTON, self.on_clear_button)
         self.start_button = wx.Button(self, label="Start")
         self.start_button.Bind(wx.EVT_BUTTON, self.on_start_button)
 
@@ -165,6 +167,7 @@ class MonitorPanel(wx.Panel):
         self.subsizer.Add(self.spinbox, 1, wx.EXPAND)
         self.subsizer.Add(wx.StaticText(self, label='data points'),
                 0, wx.ALIGN_CENTER)
+        self.subsizer.Add(self.clear_button, 0, wx.EXPAND)
         self.subsizer.Add(self.start_button, 0, wx.EXPAND)
 
         self.box = wx.StaticBox(self, label="Monitor")
@@ -189,6 +192,10 @@ class MonitorPanel(wx.Panel):
             self.abort_worker()
             self.running = False
             self.start_button.SetLabel('Resume')
+
+    def on_clear_button(self, event):
+        self.x.clear()
+        self.y.clear()
 
     def __del__(self):
         # this doesn't seem to work
