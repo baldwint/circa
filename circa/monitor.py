@@ -5,11 +5,20 @@ import os
 
 from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg
 from matplotlib.figure import Figure
+from matplotlib import ticker as mticker
+from matplotlib import transforms as mtransforms
 import numpy as n
 from time import sleep, time
 import threading
 from collections import deque
 from .util import get_next_filename
+
+class ScrollingLocator(mticker.MaxNLocator):
+
+    def view_limits(self, vmin, vmax):
+        """ Leave unchanged, for smooth scrolling """
+        return mtransforms.nonsingular(vmin, vmax)
+
 
 def silly_gen(inc=0.1):
     """
@@ -132,6 +141,8 @@ class MonitorPanel(wx.Panel):
 
         fig = Figure()
         self.ax = fig.add_subplot(111)
+
+        self.ax.xaxis.set_major_locator(ScrollingLocator())
 
         # maintain x and y lists (we'll append to these as we go)
         self.setup_deques([], [])
