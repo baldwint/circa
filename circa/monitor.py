@@ -157,15 +157,15 @@ class MonitorPanel(wx.Panel):
         self.spinbox = wx.SpinCtrlDouble(self,
                 value='100', min=10, max=10000, inc=10)
         self.Bind(wx.EVT_SPINCTRLDOUBLE, self.impose_limit)
-        self.button = wx.Button(self, label="Start")
-        self.button.Bind(wx.EVT_BUTTON, self.on_button)
+        self.start_button = wx.Button(self, label="Start")
+        self.start_button.Bind(wx.EVT_BUTTON, self.on_start_button)
 
         self.subsizer = wx.BoxSizer(wx.HORIZONTAL)
         self.subsizer.Add(self.checkbox, 0, wx.EXPAND)
         self.subsizer.Add(self.spinbox, 1, wx.EXPAND)
         self.subsizer.Add(wx.StaticText(self, label='data points'),
                 0, wx.ALIGN_CENTER)
-        self.subsizer.Add(self.button, 0, wx.EXPAND)
+        self.subsizer.Add(self.start_button, 0, wx.EXPAND)
 
         self.box = wx.StaticBox(self, label="Monitor")
         self.sizer = wx.StaticBoxSizer(self.box, orient=wx.VERTICAL)
@@ -180,15 +180,15 @@ class MonitorPanel(wx.Panel):
         self.running = False
         self.Bind(EVT_RESULT, self.on_result)
 
-    def on_button(self, event):
+    def on_start_button(self, event):
         if not self.running:
             self.start_worker()
             self.running = True
-            self.button.SetLabel('Stop')
+            self.start_button.SetLabel('Stop')
         else:
             self.abort_worker()
             self.running = False
-            self.button.SetLabel('Start')
+            self.start_button.SetLabel('Resume')
 
     def __del__(self):
         # this doesn't seem to work
