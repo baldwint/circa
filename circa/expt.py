@@ -9,6 +9,29 @@ from contextlib import contextmanager
 # COUNTING STUFF
 # --------------
 
+def make_counter(countchan, trig=None):
+    """
+    Configure the given counter to count, maybe with a pause trigger.
+    """
+    ctr = daq.Task()
+    ctr.CreateCICountEdgesChan(countchan, "",
+                               daq.DAQmx_Val_Rising,
+                               0,  # initial count
+                               daq.DAQmx_Val_CountUp)
+
+    if trig is not None:
+        # configure pause trigger
+        ctr.SetPauseTrigType(daq.DAQmx_Val_DigLvl)
+        ctr.SetDigLvlPauseTrigSrc(trig)
+        ctr.SetDigLvlPauseTrigWhen(daq.DAQmx_Val_Low)
+
+    return ctr
+
+# for pulsed detection in andrew's setup, use:
+#make_counter("Dev2/ctr2", trig="/Dev2/PFI5")
+# and the gate counter:
+#make_counter("Dev2/ctr3")
+
 def configure_counter(duration=.1,
                       pulsechan="Dev1/ctr1",
                       countchan="Dev1/ctr0"):
@@ -27,19 +50,12 @@ def configure_counter(duration=.1,
         0.00, .0001, duration,   # initial delay, low time, high time
     )
 
-    # configure counter
-    ctr = daq.Task()
-    ctr.CreateCICountEdgesChan(countchan, "",
-                               daq.DAQmx_Val_Rising,
-                               0,  # initial count
-                               daq.DAQmx_Val_CountUp)
-
-    # pause trigger
-    ctr.SetPauseTrigType(daq.DAQmx_Val_DigLvl)
-    ctr.SetDigLvlPauseTrigWhen(daq.DAQmx_Val_Low)
     # if these are paired counters, we can use the internal output
+    # of the pulsing channel to trigger the counting channel
     trigchan = "/%sInternalOutput" % pulsechan.replace('ctr', 'Ctr')
-    ctr.SetDigLvlPauseTrigSrc(trigchan)
+
+    # configure counter
+    ctr = make_counter(countchan, trig=trigchan)
 
     return pulse, ctr
 
