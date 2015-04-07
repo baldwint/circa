@@ -84,9 +84,9 @@ class ScanPanel(wx.Panel):
         self.Ymax = wx.SpinCtrlDouble(self, value=str(nvals),
                                    min=1, max=nvals)
 
-        self.increment = wx.SpinCtrl(self, value='10',
+        self.increment = wx.SpinCtrl(self, value='128',
                 min=1, max=nvals/2, style=wx.SP_ARROW_KEYS)
-        self.exposure = wx.SpinCtrlDouble(self, value='.01',
+        self.exposure = wx.SpinCtrlDouble(self, value='.001',
                 min=0., max=10, inc=.001, style=wx.SP_ARROW_KEYS)
 
         self.repeat = wx.CheckBox(self)
