@@ -247,17 +247,24 @@ if __name__ == "__main__":
     pulsechan = cfg.get('counting', 'pulsechan')
     countchan = cfg.get('counting', 'countchan')
 
+    import sys
+    fake = ('--fake' in sys.argv)
+
     try:
+        import PyDAQmx as daq
+    except NotImplementedError:
+        fake = True
+
+    if fake:
+        gen = silly_gen()
+        title += ' (fake)'
+    elif '--gated' in sys.argv:
+        from .expt import gen_gated_counts
+        gen = gen_gated_counts(t=0.1)
+        title += ' (gated)'
+    else:
         from .expt import gen_count_rate
         gen = gen_count_rate(t=0.1, pulsechan=pulsechan, countchan=countchan)
-    except NotImplementedError:
-        gen = silly_gen()
-        title += ' (fake)'
-
-    import sys
-    if '--fake' in sys.argv:
-        gen = silly_gen()
-        title += ' (fake)'
 
     app = wx.App(False)
     frame = MonitorWindow(None, title, datagen=gen)

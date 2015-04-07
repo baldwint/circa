@@ -27,11 +27,6 @@ def make_counter(countchan, trig=None):
 
     return ctr
 
-# for pulsed detection in andrew's setup, use:
-#make_counter("Dev2/ctr2", trig="/Dev2/PFI5")
-# and the gate counter:
-#make_counter("Dev2/ctr3")
-
 def configure_counter(duration=.1,
                       pulsechan="Dev1/ctr1",
                       countchan="Dev1/ctr0"):
@@ -127,6 +122,45 @@ def gen_count_rate(t=0.1, **kwargs):
         y = do_count(p,c)/t
         yield time.time() - start, y
 
+# ---------------
+# PULSED COUNTING
+# ---------------
+
+def get_counts(ctr):
+    """ this stops ``ctr`` and returns its result """
+    count = daq.uInt32()
+    ctr.ReadCounterScalarU32(10., daq.byref(count), None)
+    ctr.StopTask()
+    return count.value
+
+def gen_gated_counts(t=0.1):
+    """
+    equivalent of gen_count_rate when something else (e.g. a spincore
+    sequence) is gating the detection, not a pulse we generate
+    ourselves.
+
+    This counts both photons and gate edges, and returns the rate as
+    photons collected per gated detection period. Divide by the width
+    of the window to get counts per second.
+    """
+    # photon counter
+    pc = make_counter("Dev2/ctr2", trig="/Dev2/PFI5")
+    # and the gate counter:
+    gc = make_counter("Dev2/ctr3")
+    # the paths here are for andrew's setup, hardcoded for now (sorry)
+
+    start = time.time()
+    while True:
+        gc.StartTask() # start both counters. this isn't
+        pc.StartTask() # exactly synchronous (error source)
+        time.sleep(t)
+        photons = get_counts(pc)
+        pulses  = get_counts(gc)
+        if pulses:
+            rate = photons / float(pulses)
+        else:
+            rate = 0.
+        yield time.time() - start, rate
 
 # ---------------
 # SCANNING MIRROR
