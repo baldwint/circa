@@ -65,7 +65,8 @@ class MainWindow(wx.Frame):
         self.panel.open(dirname, filename)
         self.SetTitle(filename)
 
-from imaging import show_image, add_hist_to_cbar, add_nice_sizebar
+from .imaging import (show_image, add_hist_to_cbar,
+                      add_nice_sizebar, add_marker)
 
 class ImagePanel(wx.Panel):
 
@@ -199,9 +200,7 @@ class Marker(object):
     """ A circle marking a point on the image """
 
     def __init__(self, ax, xloc, yloc, **kwargs):
-        self.line, = ax.plot((xloc,), (yloc,), 'o',
-                             scalex=False, scaley=False,
-                             **kwargs)
+        self.line = add_marker(xloc, yloc, ax=ax, **kwargs)
 
     def set_x(self, xloc):
         self.line.set_xdata((xloc,))

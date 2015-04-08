@@ -85,17 +85,14 @@ def add_hist_to_cbar(im, cbar=None):
 
     return histpatch
 
+def add_marker(xloc, yloc, ax=None, **kwargs):
+    """ Add a symbol denoting a point of interest. """
 
-#from matplotlib.colorbar import Colorbar
-#
-#class HistColorbar(Colorbar):
-#
-#    def __init__(self, ax, mappable, **kw):
-#        Colorbar.__init__(self, ax, mappable, **kw)
-#        self.on_mappable_changed(mappable)
-#
-#    def on_mappable_changed(self, mappable):
-#        Colorbar.on_mappable_changed(self, ax, mappable, **kw)
-#        add_hist_to_cbar(mappable, self)
+    if ax is None:
+        ax = gca()
 
+    line, = ax.plot((xloc,), (yloc,), 'o',
+                    scalex=False, scaley=False,
+                    **kwargs)
+    return line
 
