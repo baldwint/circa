@@ -14,6 +14,14 @@ def gen_2D(X, Y, xgalvo, ygalvo):
             xgalvo.value = x
             yield
 
+def repeat_gen(gen, *args, **kwargs):
+    """ repeatedly instantiate gen and run it to completion. """
+    while True:
+        current = gen(*args, **kwargs)
+        #yield from current
+        for result in current:
+            yield result
+
 def chunk(gen, n=1):
     # not perfect unless n perfectly divides the lenght of gen
     while True:
@@ -30,6 +38,7 @@ def yielding_fromiter(gen, result):
     """
     dimensions = [xrange(n) for n in result.shape]
     coords = itertools.product(*dimensions)
+    coords = itertools.cycle(coords) # if gen keeps going, repeat
     for loc,val in itertools.izip(coords,gen):
         result[loc] = val
         yield
@@ -42,7 +51,7 @@ def make_generator_factory(xgalvo, ygalvo, pulsechan, countchan):
     2D scans using those parameters.
     """
 
-    def make_data_generator(X, Y, t, vector):
+    def make_data_generator(X, Y, t, vector, repeat=False):
         """
         Given the scan parameters (X, Y, t) and an array in which to
         put the results of the scan (vector), construct a generator
@@ -56,7 +65,10 @@ def make_generator_factory(xgalvo, ygalvo, pulsechan, countchan):
             scan = fake_scan
 
         def datagen(X, Y, t):
-            gen = gen_2D(X, Y, xgalvo, ygalvo)
+            if repeat:
+                gen = repeat_gen(gen_2D, X, Y, xgalvo, ygalvo)
+            else:
+                gen = gen_2D(X, Y, xgalvo, ygalvo)
             return scan(gen, t, pulsechan=pulsechan, countchan=countchan)
 
         gen = chunk(yielding_fromiter(datagen(X, Y, t), vector),

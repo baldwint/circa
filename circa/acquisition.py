@@ -234,7 +234,9 @@ def main():
 
     # gui app
     app = wx.App(False)
-    frame = AcquisitionWindow(None, xgalvo, ygalvo, make_data_generator)
+    frame = AcquisitionWindow(None, xgalvo, ygalvo, make_data_generator,
+                                repeat=False,
+                              )
     frame.Show(True)
     app.MainLoop()
 
