@@ -87,7 +87,7 @@ def make_pulse(duration, pulsechan):
     )
     return pulse
 
-def make_buffered_counter(samps, countchan, sampleclk):
+def make_buffered_counter(samps, countchan, sampleclk, trig=None):
     ctr = Task()
     ctr.CreateCICountEdgesChan(countchan, "",
                                DAQmx_Val_Rising,
@@ -102,11 +102,18 @@ def make_buffered_counter(samps, countchan, sampleclk):
                          DAQmx_Val_FiniteSamps,  # sampleMode
                          samps)                    # sampsPerChanToAcquire
 
+    if trig is not None:
+        # configure pause trigger
+        ctr.SetPauseTrigType(DAQmx_Val_DigLvl)
+        ctr.SetDigLvlPauseTrigSrc(trig)
+        ctr.SetDigLvlPauseTrigWhen(DAQmx_Val_Low)
+
     return ctr
 
-def many_samples(samps, timeout, pulsechan, countchan, sampleclk):
+def many_samples(samps, timeout, pulsechan, countchan, sampleclk, trig=None):
     ctr = make_buffered_counter(samps, countchan=countchan,
-                                       sampleclk=sampleclk)
+                                       sampleclk=sampleclk,
+                                       trig=trig)
     # make a pulse to trigger the burst on AFGs
     co = make_pulse(.01, pulsechan=pulsechan)
     ctr.StartTask()  # start counting
