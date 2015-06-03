@@ -25,6 +25,8 @@ class AFG_channel(object):
         self.bus.write(self.cmd('func ' + val))
 
     mode = property(get_mode, set_mode)
+    """ Output Mode. Can be SIN, SQU, RAMP.
+    If arb, specify source: USER1, USER2, USER3, USER4, EMEM """
 
     def get_freq(self):
         return float(self.bus.ask(self.cmd('freq?')))
@@ -33,6 +35,52 @@ class AFG_channel(object):
         self.bus.write(self.cmd('freq ' + str(val)))
 
     freq = property(get_freq, set_freq)
+    """ Frequency in Hz """
+
+    def get_amp(self):
+        return float(self.bus.ask(self.cmd('volt?')))
+
+    def set_amp(self, val):
+        self.bus.write(self.cmd('volt ' + str(val)))
+
+    amp = property(get_amp, set_amp)
+    """ Amplitude in Volts peak to peak """
+
+    def get_offset(self):
+        return float(self.bus.ask(self.cmd('volt:offs?')))
+
+    def set_offset(self, val):
+        self.bus.write(self.cmd('volt:offs ' + str(val)))
+
+    offset = property(get_offset, set_offset)
+    """ Amplitude offset in Volts """
+
+    def get_high(self):
+        return float(self.bus.ask(self.cmd('volt:high?')))
+
+    def set_high(self, val):
+        self.bus.write(self.cmd('volt:high ' + str(val)))
+
+    high = property(get_high, set_high)
+    """ Amplitude high in Volts """
+
+    def get_low(self):
+        return float(self.bus.ask(self.cmd('volt:low?')))
+
+    def set_low(self, val):
+        self.bus.write(self.cmd('volt:low ' + str(val)))
+
+    low = property(get_low, set_low)
+    """ Amplitude low in Volts """
+
+    def get_phase(self):
+        return float(self.bus.ask(self.cmd('phase?')))
+
+    def set_phase(self, val):
+        self.bus.write(self.cmd('phase ' + str(val)))
+
+    phase = property(get_phase, set_phase)
+    """ Waveform phase in radians """
 
 from io import BytesIO
 
