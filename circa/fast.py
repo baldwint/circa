@@ -76,16 +76,7 @@ class AFGasDAC(object):
 
 
 from PyDAQmx import *
-
-def make_pulse(duration, pulsechan):
-    pulse = Task()
-    pulse.CreateCOPulseChanTime(
-        pulsechan, "",           # physical channel, name to assign
-        DAQmx_Val_Seconds,       # units:seconds
-        DAQmx_Val_Low,           # idle state: low
-        0.00, .0001, duration,  # initial delay, low time, high time
-    )
-    return pulse
+from .expt import make_pulse
 
 def make_buffered_counter(samps, countchan, sampleclk, trig=None):
     ctr = Task()

@@ -27,6 +27,20 @@ def make_counter(countchan, trig=None):
 
     return ctr
 
+def make_pulse(duration, pulsechan):
+    """
+    Configure the counter `pulsechan` to output
+    a pulse of the given `duration` (in seconds).
+    """
+    pulse = daq.Task()
+    pulse.CreateCOPulseChanTime(
+        pulsechan, "",            # physical channel, name to assign
+        daq.DAQmx_Val_Seconds,   # units:seconds
+        daq.DAQmx_Val_Low,       # idle state: low
+        0.00, .0001, duration,   # initial delay, low time, high time
+    )
+    return pulse
+
 def configure_counter(duration=.1,
                       pulsechan="Dev1/ctr1",
                       countchan="Dev1/ctr0"):
@@ -37,13 +51,7 @@ def configure_counter(duration=.1,
     """
 
     # configure pulse (for hardware timing)
-    pulse = daq.Task()
-    pulse.CreateCOPulseChanTime(
-        pulsechan, "",            # physical channel, name to assign
-        daq.DAQmx_Val_Seconds,   # units:seconds
-        daq.DAQmx_Val_Low,       # idle state: low
-        0.00, .0001, duration,   # initial delay, low time, high time
-    )
+    pulse = make_pulse(duration, pulsechan)
 
     # if these are paired counters, we can use the internal output
     # of the pulsing channel to trigger the counting channel
